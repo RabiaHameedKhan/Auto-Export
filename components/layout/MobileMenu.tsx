@@ -1,0 +1,90 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+type Props = {
+  companyName: string;
+  phone: string;
+  whatsapp: string;
+};
+
+export function MobileMenu({ companyName, phone, whatsapp }: Props) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="lg:hidden">
+      <button
+        type="button"
+        aria-label="Open menu"
+        className="rounded-lg p-2 hover:bg-white/10"
+        onClick={() => setOpen(true)}
+      >
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <div
+        className={cn(
+          "fixed inset-0 z-50 bg-black/40 transition-opacity lg:hidden",
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+        onClick={() => setOpen(false)}
+      />
+      <aside
+        className={cn(
+          "fixed right-0 top-0 z-50 flex h-full w-[min(100%,320px)] flex-col bg-[#0c47a5] shadow-xl transition-transform duration-200 lg:hidden",
+          open ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between border-b border-white/10 p-4">
+          <span className="font-semibold">{companyName}</span>
+          <button
+            type="button"
+            className="rounded p-2 hover:bg-white/10"
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
+        </div>
+        <nav className="flex flex-col gap-1 p-4 text-sm">
+          <Link href="/search" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
+            Used Cars
+          </Link>
+          <Link href="/brand-new" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
+            Brand New
+          </Link>
+          <Link href="/why-choose-us" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
+            Why Choose Us
+          </Link>
+          <Link href="/how-to-buy" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
+            How to Buy
+          </Link>
+          <Link href="/bank-details" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
+            Bank Details
+          </Link>
+          <Link href="/contact" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
+            Contact
+          </Link>
+          <a
+            href={`tel:${phone.replace(/\s/g, "")}`}
+            className="mt-4 rounded-lg bg-[#e6d53c] px-3 py-3 text-center font-semibold text-black"
+          >
+            {phone}
+          </a>
+          <a
+            href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-white/30 px-3 py-3 text-center"
+          >
+            WhatsApp
+          </a>
+        </nav>
+      </aside>
+    </div>
+  );
+}
