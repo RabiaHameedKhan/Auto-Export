@@ -1,9 +1,10 @@
-import { TopBar } from "@/components/layout/TopBar";
+﻿import { TopBar } from "@/components/layout/TopBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AnnouncementBanner } from "@/components/home/AnnouncementBanner";
 import { getActiveAnnouncements } from "@/lib/queries/site";
 import { getSiteSettings } from "@/lib/queries/site";
+import { SITE_CONTACT } from "@/lib/site-contact";
 
 export const dynamic = "force-dynamic";
 
@@ -32,19 +33,16 @@ export default async function PublicLayout({
     /* DB not configured */
   }
 
-  const companyName = settings.company_name ?? "Auto Export";
+  const companyName = settings.company_name ?? "9 Yard Trading";
   const address = settings.address ?? undefined;
-  const email = settings.email ?? undefined;
-  const phone = settings.phone ?? undefined;
+  const email = SITE_CONTACT.email;
+  const phone = SITE_CONTACT.phone;
+  const whatsapp = SITE_CONTACT.whatsapp;
 
   return (
     <>
-      <TopBar />
-      <Navbar
-        companyName={companyName}
-        phone={phone ?? "+66 00 000 0000"}
-        whatsapp={settings.whatsapp ?? "66000000000"}
-      />
+      <TopBar hours={SITE_CONTACT.hours} phone={phone} email={email} />
+      <Navbar companyName={companyName} phone={phone} whatsapp={whatsapp} />
       <AnnouncementBanner items={announcements} />
       <main className="min-h-[60vh]">{children}</main>
       <Footer

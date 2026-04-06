@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Seed dummy catalog + inventory. Requires DATABASE_URL in .env.local or .env.
  * Run: node scripts/seed-dummy.mjs
  */
@@ -51,16 +51,16 @@ const imgs = [
 const vehicles = [
   ["AE-1001", "toyota", "hilux", "double-cab", "2021 TOYOTA HILUX DOUBLE CAB 2.8", 2021, 6, 22400, 38000, "Diesel", "Automatic", "Right", 2755, "White", "4WD", "used", "<p>Well maintained, full service history.</p>", true, false],
   ["AE-1002", "ford", "ranger", "double-cab", "2022 FORD RANGER WILDTRAK", 2022, 3, 28900, 22000, "Diesel", "Automatic", "Right", 1996, "Grey", "4WD", "used", "<p>Top trim, leather, navigation.</p>", true, false],
-  ["AE-1003", "toyota", "fortuner", "suv", "2020 TOYOTA FORTUNER 2.8", 2020, 11, 31500, 52000, "Diesel", "Automatic", "Right", 2755, "Silver", "4WD", "used", "<p>Clearance pricing — minor cosmetic wear.</p>", false, true],
+  ["AE-1003", "toyota", "fortuner", "suv", "2020 TOYOTA FORTUNER 2.8", 2020, 11, 31500, 52000, "Diesel", "Automatic", "Right", 2755, "Silver", "4WD", "used", "<p>Clearance pricing â€” minor cosmetic wear.</p>", false, true],
   ["AE-1004", "mitsubishi", "triton", "double-cab", "2019 MITSUBISHI TRITON ATHLETE", 2019, 8, 16800, 78000, "Diesel", "Manual", "Right", 2442, "Black", "4WD", "used", "<p>Manual gearbox, strong runner.</p>", false, false],
-  ["AE-1005", "isuzu", "d-max", "double-cab", "2023 ISUZU D-MAX V-CROSS", 2023, 2, 26200, 12000, "Diesel", "Automatic", "Right", 1898, "Red", "4WD", "brand_new", "<p>Brand new — delivery mileage only.</p>", true, false],
+  ["AE-1005", "isuzu", "d-max", "double-cab", "2023 ISUZU D-MAX V-CROSS", 2023, 2, 26200, 12000, "Diesel", "Automatic", "Right", 1898, "Red", "4WD", "brand_new", "<p>Brand new â€” delivery mileage only.</p>", true, false],
   ["AE-1006", "nissan", "navara", "double-cab", "2018 NISSAN NAVARA ST-X", 2018, 5, 14200, 95000, "Diesel", "Automatic", "Right", 2298, "White", "2WD", "used", "<p>Budget-friendly workhorse.</p>", false, false],
   ["AE-1007", "toyota", "hiace", "van", "2021 TOYOTA HIACE COMMUTER", 2021, 4, 19800, 41000, "Diesel", "Automatic", "Right", 2755, "White", "2WD", "used", "<p>15-seater, ideal for shuttle operators.</p>", false, false],
   ["AE-1008", "ford", "everest", "suv", "2022 FORD EVEREST SPORT", 2022, 9, 35200, 28000, "Diesel", "Automatic", "Right", 1996, "Blue", "4WD", "used", "<p>Panoramic roof, adaptive cruise.</p>", true, false],
   ["AE-1009", "honda", "cr-v", "suv", "2023 HONDA CR-V TURBO", 2023, 1, 30500, 8000, "Petrol", "Automatic", "Left", 1498, "Grey", "2WD", "used", "<p>LHD example for selected markets.</p>", true, false],
   ["AE-1010", "mitsubishi", "pajero-sport", "suv", "2020 MITSUBISHI PAJERO SPORT GT", 2020, 7, 23800, 61000, "Diesel", "Automatic", "Right", 2442, "Dark Grey", "4WD", "used", "<p>End of line clearance.</p>", false, true],
   ["AE-1011", "toyota", "hilux", "standard-cab", "2017 TOYOTA HILUX STANDARD CAB", 2017, 10, 11200, 120000, "Diesel", "Manual", "Right", 2393, "White", "2WD", "used", "<p>Fleet vehicle, high km, runs well.</p>", false, false],
-  ["AE-1012", "toyota", "fortuner", "suv", "2024 TOYOTA FORTUNER LEGENDER", 2024, 1, 44800, 500, "Diesel", "Automatic", "Right", 2755, "Black", "4WD", "brand_new", "<p>Brand new — latest model year.</p>", true, false],
+  ["AE-1012", "toyota", "fortuner", "suv", "2024 TOYOTA FORTUNER LEGENDER", 2024, 1, 44800, 500, "Diesel", "Automatic", "Right", 2755, "Black", "4WD", "brand_new", "<p>Brand new â€” latest model year.</p>", true, false],
 ];
 
 const featureSets = [
@@ -241,7 +241,7 @@ async function main() {
 
     await c.query(`
       INSERT INTO announcements (title, content, is_active)
-      SELECT 'Shipping update', 'Container schedules may shift during peak season — contact us for ETAs.', true
+      SELECT 'Shipping update', 'Container schedules may shift during peak season â€” contact us for ETAs.', true
       WHERE NOT EXISTS (SELECT 1 FROM announcements WHERE title = 'Shipping update');
     `);
     await c.query(`
@@ -278,9 +278,10 @@ async function main() {
     await c.query(`
       INSERT INTO site_settings (key, value) VALUES
         ('company_name', '9 Yards Auto Export'),
-        ('phone', '+66 2 123 4567'),
+        ('phone', '+66660202902'),
+        ('whatsapp', '66660202902'),
         ('whatsapp', '66812345678'),
-        ('email', 'sales@9yardsexport.example'),
+        ('email', 'info@9yardtrading.com'),
         ('address', '123 Sukhumvit Rd, Bangkok, Thailand'),
         ('hero_banner_url', 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&q=80')
       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
@@ -301,3 +302,4 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
+

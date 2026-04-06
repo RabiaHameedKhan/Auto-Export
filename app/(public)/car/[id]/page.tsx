@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getVehicleById, getRelatedVehicles } from "@/lib/queries/vehicles";
 import { VehicleImageGallery } from "@/components/vehicle/VehicleImageGallery";
@@ -8,6 +8,7 @@ import { VehicleGrid } from "@/components/vehicle/VehicleGrid";
 import { QuoteForm } from "@/components/forms/QuoteForm";
 import { formatUsd } from "@/lib/utils";
 import { getSiteSetting } from "@/lib/queries/site";
+import { SITE_CONTACT } from "@/lib/site-contact";
 
 export const revalidate = 300;
 
@@ -32,9 +33,9 @@ export default async function CarDetailPage({
   let whatsapp: string | undefined;
   try {
     const w = await getSiteSetting("whatsapp");
-    whatsapp = w ?? undefined;
+    whatsapp = w ?? SITE_CONTACT.whatsapp;
   } catch {
-    whatsapp = undefined;
+    whatsapp = SITE_CONTACT.whatsapp;
   }
 
   const price = parseFloat(String(v.price));
@@ -77,7 +78,7 @@ export default async function CarDetailPage({
           />
           <div className="mt-8 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-[#6b7280]">Stock #{v.stockNumber ?? "—"}</p>
+              <p className="text-sm text-[#6b7280]">Stock #{v.stockNumber ?? "â€”"}</p>
               <h1 className="text-2xl font-bold uppercase tracking-wide text-[#0a0a0a] md:text-3xl">
                 {v.title}
               </h1>
@@ -142,7 +143,7 @@ export default async function CarDetailPage({
               href="/how-to-buy"
               className="mt-4 inline-block text-sm font-semibold text-[#0c47a5] hover:underline"
             >
-              Full guide →
+              Full guide â†’
             </Link>
           </section>
 
@@ -161,3 +162,6 @@ export default async function CarDetailPage({
     </div>
   );
 }
+
+
+

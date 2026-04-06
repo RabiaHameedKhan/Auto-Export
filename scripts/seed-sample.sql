@@ -1,4 +1,4 @@
--- Fresh database only. Run: psql $DATABASE_URL -f scripts/seed-sample.sql
+﻿-- Fresh database only. Run: psql $DATABASE_URL -f scripts/seed-sample.sql
 -- Login: admin@example.com / changeme
 
 INSERT INTO admin_users (email, password_hash, name)
@@ -55,8 +55,8 @@ FROM vehicles v WHERE v.stock_number = 'DEMO-001';
 
 INSERT INTO site_settings (key, value) VALUES
   ('company_name', 'Auto Export'),
-  ('phone', '+66 00 000 0000'),
-  ('whatsapp', '66000000000'),
-  ('email', 'info@example.com'),
+  ('phone', '+66660202902'),
+  ('whatsapp', '66660202902'),
+  ('email', 'info@9yardtrading.com'),
   ('address', 'Bangkok, Thailand')
 ON CONFLICT (key) DO NOTHING;

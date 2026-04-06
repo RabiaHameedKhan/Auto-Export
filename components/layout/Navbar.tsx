@@ -1,8 +1,10 @@
-"use client";
+﻿"use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { MobileMenu } from "./MobileMenu";
+import { SITE_CONTACT } from "@/lib/site-contact";
 import { cn } from "@/lib/utils";
 
 const mega = [
@@ -24,7 +26,7 @@ const mega = [
     href: "/search",
     children: [
       { label: "Under $8k", href: "/price-under/8000" },
-      { label: "$8k – $12k", href: "/by-price/8000/12000" },
+      { label: "$8k - $12k", href: "/by-price/8000/12000" },
       { label: "Over $20k", href: "/price-over/20000" },
     ],
   },
@@ -37,20 +39,26 @@ type NavbarProps = {
 };
 
 export function Navbar({
-  companyName = "Auto Export",
-  phone = "+66 00 000 0000",
-  whatsapp = "66000000000",
+  companyName = "9 Yard Trading",
+  phone = SITE_CONTACT.phone,
+  whatsapp = SITE_CONTACT.whatsapp,
 }: NavbarProps) {
   const [open, setOpen] = useState<string | null>(null);
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#e0e0e0] bg-[#0c47a5] text-white shadow-sm">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-lg font-bold text-[#e6d53c]">
-            AE
+        <Link href="/" className="flex items-center font-semibold tracking-tight">
+          <span className="flex h-14 w-[210px] items-center justify-center rounded-2xl bg-white px-3 py-2 shadow-lg ring-1 ring-black/10 sm:h-16 sm:w-[250px]">
+            <Image
+              src="/logo.png"
+              alt={`${companyName} logo`}
+              width={250}
+              height={58}
+              className="h-full w-full object-contain"
+              priority
+            />
           </span>
-          <span className="hidden sm:inline">{companyName}</span>
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">
@@ -66,7 +74,7 @@ export function Navbar({
                 open === "used" && "bg-white/10"
               )}
             >
-              Used Cars ▾
+              Used Cars
             </button>
             {open === "used" && (
               <div className="absolute left-0 top-full z-50 mt-1 flex min-w-[520px] gap-6 rounded-xl border border-[#e0e0e0] bg-white p-6 text-[#0a0a0a] shadow-xl">

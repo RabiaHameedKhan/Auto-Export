@@ -1,61 +1,30 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
+import { SITE_CONTACT } from "@/lib/site-contact";
 
-export function TopBar() {
-  const [stats, setStats] = useState({ totalVehicles: 0, addedToday: 0 });
-  const [time, setTime] = useState("");
+type TopBarProps = {
+  hours?: string;
+  phone?: string;
+  email?: string;
+};
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const r = await fetch("/api/stats");
-        const j = await r.json();
-        if (!cancelled) setStats(j);
-      } catch {
-        /* ignore */
-      }
-    };
-    load();
-    const id = setInterval(load, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
-
-  useEffect(() => {
-    const tick = () => {
-      const d = new Date();
-      setTime(
-        d.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        })
-      );
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
+export function TopBar({
+  hours = SITE_CONTACT.hours,
+  phone = SITE_CONTACT.phone,
+  email = SITE_CONTACT.email,
+}: TopBarProps) {
   return (
-    <div className="bg-[#0a0a0a] text-white text-sm">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2">
-        <div className="flex flex-wrap gap-4">
-          <span>
-            Total Cars:{" "}
-            <strong className="text-[#e6d53c]">{stats.totalVehicles}</strong>
-          </span>
-          <span>
-            Cars Added Today:{" "}
-            <strong className="text-[#e6d53c]">{stats.addedToday}</strong>
-          </span>
+    <div className="bg-[#0a0a0a] text-sm text-white">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 py-2 md:justify-between">
+        <span className="text-white/85">{hours}</span>
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          <a href={`tel:${phone}`} className="font-medium text-[#e6d53c] hover:underline">
+            {phone}
+          </a>
+          <a href={`mailto:${email}`} className="font-medium text-[#e6d53c] hover:underline">
+            {email}
+          </a>
         </div>
-        <div className="font-mono tabular-nums text-[#e6d53c]">{time}</div>
       </div>
     </div>
   );
