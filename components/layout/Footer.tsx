@@ -20,13 +20,15 @@ export function Footer({
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-4">
         <div>
           <div className="mb-3 flex items-center gap-2 font-semibold text-[#0c47a5]">
-            <Image
-              src="/logo.png"
-              alt={`${companyName} logo`}
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-lg bg-white p-1 object-contain shadow-sm"
-            />
+            <div className="flex h-16 w-28 items-center justify-center rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-black/5">
+              <Image
+                src="/logo.png"
+                alt={`${companyName} logo`}
+                width={96}
+                height={48}
+                className="h-full w-full object-contain"
+              />
+            </div>
             {companyName}
           </div>
           {address ? <p className="text-sm text-[#6b7280]">{address}</p> : null}
@@ -79,14 +81,14 @@ export function Footer({
         <div>
           <h3 className="mb-3 font-semibold text-[#0a0a0a]">Follow</h3>
           <div className="flex gap-3">
-            <a href="#" className="text-[#0c47a5] hover:underline" aria-label="Facebook">
+            <a
+              href="https://www.facebook.com/people/9yard-Trading-Thailand/100086220451987/?rdid=hPaTYrYy4w8zBWAU&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19KZMEgTEY%2F"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#0c47a5] hover:underline"
+              aria-label="Facebook"
+            >
               Facebook
-            </a>
-            <a href="#" className="text-[#0c47a5] hover:underline" aria-label="YouTube">
-              YouTube
-            </a>
-            <a href="#" className="text-[#0c47a5] hover:underline" aria-label="Instagram">
-              Instagram
             </a>
           </div>
         </div>

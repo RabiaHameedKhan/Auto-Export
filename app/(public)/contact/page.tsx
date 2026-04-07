@@ -1,4 +1,4 @@
-﻿import { getSiteSettings } from "@/lib/queries/site";
+import { getSiteSettings } from "@/lib/queries/site";
 import { SITE_CONTACT } from "@/lib/site-contact";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ export default async function ContactPage() {
             Chat now
           </a>
         </li>
-        {s.address ? <li className="text-[#6b7280]">{s.address}</li> : null}
+        <li className="text-[#6b7280]">{s.address ?? SITE_CONTACT.address}</li>
       </ul>
     </div>
   );

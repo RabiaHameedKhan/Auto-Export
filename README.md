@@ -1,4 +1,4 @@
-# Auto Export — Vehicle storefront
+# Auto Export - Vehicle storefront
 
 Next.js 14 (App Router), PostgreSQL (Drizzle), NextAuth (admin), Tailwind CSS.
 
@@ -43,7 +43,7 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/autoexport
 
 ## 3. Run PostgreSQL
 
-### Option A — Docker (recommended)
+### Option A - Docker (recommended)
 
 Install [Docker Desktop](https://docs.docker.com/desktop/install/windows-install/), start it, then from the project root:
 
@@ -65,7 +65,7 @@ Stop and remove the data volume:
 docker compose down -v
 ```
 
-### Option B — PostgreSQL on Windows
+### Option B - PostgreSQL on Windows
 
 Install from [postgresql.org/download/windows](https://www.postgresql.org/download/windows/), create a database (e.g. `autoexport`), then set `DATABASE_URL` to match your user, password, host, and database name.
 
@@ -83,7 +83,7 @@ Load dummy inventory, catalog, admin user, and site settings:
 npm run db:seed
 ```
 
-- Default admin: **`admin@example.com`** / **`changeme`** — change this in production.
+- Default admin: **`admin@example.com`** / **`changeme`** - change this in production.
 
 Optional: open Drizzle Studio to inspect the database:
 
@@ -133,6 +133,6 @@ See `auto-export-website-prompt.md` for the full product specification.
 
 ## Troubleshooting
 
-- **`DATABASE_URL is not set`** — Add it to `.env.local` and restart the dev server.
-- **Connection refused** — PostgreSQL is not running, or host/port in `DATABASE_URL` is wrong.
-- **`npm` script disabled** in PowerShell — Run `npm.cmd` instead, or set execution policy for your user: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+- **`DATABASE_URL is not set`** - Add it to `.env.local` and restart the dev server.
+- **Connection refused** - PostgreSQL is not running, or host/port in `DATABASE_URL` is wrong.
+- **`npm` script disabled** in PowerShell - Run `npm.cmd` instead, or set execution policy for your user: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.

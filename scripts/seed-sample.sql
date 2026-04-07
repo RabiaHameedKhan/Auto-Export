@@ -1,4 +1,4 @@
-﻿-- Fresh database only. Run: psql $DATABASE_URL -f scripts/seed-sample.sql
+-- Fresh database only. Run: psql $DATABASE_URL -f scripts/seed-sample.sql
 -- Login: admin@example.com / changeme
 
 INSERT INTO admin_users (email, password_hash, name)
@@ -54,9 +54,9 @@ SELECT v.id, 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=120
 FROM vehicles v WHERE v.stock_number = 'DEMO-001';
 
 INSERT INTO site_settings (key, value) VALUES
-  ('company_name', 'Auto Export'),
+  ('company_name', '9 Yard Trading'),
   ('phone', '+66660202902'),
   ('whatsapp', '66660202902'),
   ('email', 'info@9yardtrading.com'),
-  ('address', 'Bangkok, Thailand')
+  ('address', '193, Soi Samrong Nuea 21, Samrong Nuea sub-district, Mueang Samut Prakan district, Samut Prakan, 10270')
 ON CONFLICT (key) DO NOTHING;

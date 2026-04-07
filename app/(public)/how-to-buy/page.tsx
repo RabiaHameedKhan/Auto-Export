@@ -4,24 +4,24 @@ export const dynamic = "force-dynamic";
 
 const defaultSteps = [
   {
-    title: "Order",
-    body: "Choose your vehicle using our search filters — by make, body type, price, fuel, and more.",
+    title: "We are a Trusted Name in Auto Industry",
+    body: "9 Yard Trading is a leading and the most trusted name in the field of automobile trading industry.",
   },
   {
-    title: "Buy now",
-    body: "Tell us your destination country and port, then submit a quote request or contact us on WhatsApp.",
+    title: "Visited by Million of Car Buyers Every Month!",
+    body: "We are best known for providing quality vehicle inspection via thorough examination of every vehicle that is booked from our end.",
   },
   {
-    title: "Make payment",
-    body: "Pay securely via bank wire transfer (TT) or PayPal as agreed in your proforma invoice.",
+    title: "World Wide Dealing",
+    body: "Our customers are in 120+ countries and rely on us for dependable vehicle sourcing.",
   },
   {
-    title: "Shipment",
-    body: "We arrange shipping and share tracking so you can follow your vehicle to the port.",
+    title: "Trusted by Auto Buyers",
+    body: "500+ units are sold with customer-focused service from inquiry to delivery.",
   },
   {
-    title: "Customs clearance",
-    body: "Complete import customs and registration at your destination port with local support.",
+    title: "Affordable Auto Prices",
+    body: "9 Yard Trading is the right choice to buy a car.",
   },
 ];
 
@@ -37,7 +37,7 @@ export default async function HowToBuyPage() {
     <div className="mx-auto max-w-4xl px-4 py-14">
       <h1 className="text-3xl font-bold text-[#0a0a0a]">How to buy</h1>
       <p className="mt-4 text-lg text-[#6b7280]">
-        Five simple steps from choosing your car to receiving it at your port.
+        We are a trusted name in auto industry and deliver dependable service at reasonable prices.
       </p>
 
       {rich ? (

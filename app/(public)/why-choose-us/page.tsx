@@ -4,20 +4,20 @@ export const dynamic = "force-dynamic";
 
 const blocks = [
   {
-    title: "Global export experience",
-    body: "We ship to dealers and private buyers worldwide with clear documentation.",
+    title: "Exporting car since 2019",
+    body: "9 Yard Trading is a leading and the most trusted name in the field of automobile trading industry.",
   },
   {
-    title: "Inspected stock",
-    body: "Vehicles are checked and described accurately before listing.",
+    title: "Our Customers are in 120+ countries",
+    body: "Visited by Million of Car Buyers Every Month!",
   },
   {
-    title: "Transparent pricing",
-    body: "No hidden fees — you know the vehicle price and shipping options up front.",
+    title: "500+ units are sold",
+    body: "We are best known for providing quality vehicle inspection via thorough examination of every vehicle that is booked from our end.",
   },
   {
-    title: "Responsive support",
-    body: "Reach us by email, phone, or WhatsApp throughout the process.",
+    title: "Trusted by Auto Buyers",
+    body: "World Wide Dealing with affordable auto prices.",
   },
 ];
 

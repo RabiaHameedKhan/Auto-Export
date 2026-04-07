@@ -1,4 +1,4 @@
-﻿import { TopBar } from "@/components/layout/TopBar";
+import { TopBar } from "@/components/layout/TopBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AnnouncementBanner } from "@/components/home/AnnouncementBanner";
@@ -34,7 +34,7 @@ export default async function PublicLayout({
   }
 
   const companyName = settings.company_name ?? "9 Yard Trading";
-  const address = settings.address ?? undefined;
+  const address = settings.address ?? SITE_CONTACT.address;
   const email = SITE_CONTACT.email;
   const phone = SITE_CONTACT.phone;
   const whatsapp = SITE_CONTACT.whatsapp;

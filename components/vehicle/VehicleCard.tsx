@@ -32,7 +32,7 @@ export function VehicleCard({ vehicle }: Props) {
       </Link>
       <div className="flex flex-1 flex-col p-4">
         <Link href={`/car/${vehicle.id}`}>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-[#0a0a0a] line-clamp-2">
+          <h3 className="min-h-[2.5rem] text-sm font-semibold uppercase tracking-wide text-[#0a0a0a] line-clamp-2">
             {vehicle.title}
           </h3>
         </Link>
@@ -66,7 +66,7 @@ export function VehicleCard({ vehicle }: Props) {
         </div>
         <Link
           href={`/car/${vehicle.id}#quote`}
-          className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#0c47a5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0a3d91]"
+          className="mt-auto inline-flex items-center justify-center rounded-lg bg-[#0c47a5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0a3d91]"
         >
           Get Quote
         </Link>
