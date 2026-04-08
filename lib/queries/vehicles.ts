@@ -69,52 +69,34 @@ function orderByClause(sort: string | null | undefined) {
   }
 }
 
-export async function searchVehicles(
-  params: VehicleSearchParams
-): Promise<{ rows: VehicleListItem[]; total: number }> {
-  if (!db) return { rows: [], total: 0 };
-  const page = Math.max(1, params.page ?? 1);
-  const perPage = params.perPage ?? 20;
-  const offset = (page - 1) * perPage;
-
+function buildVehicleConditions(params: VehicleSearchParams) {
   const conditions = [eq(vehicles.isActive, true)];
-  if (params.excludeId != null)
-    conditions.push(ne(vehicles.id, params.excludeId));
 
-  if (params.makeId != null)
-    conditions.push(eq(vehicles.makeId, params.makeId));
-  if (params.modelId != null)
-    conditions.push(eq(vehicles.modelId, params.modelId));
-  if (params.bodyTypeId != null)
-    conditions.push(eq(vehicles.bodyTypeId, params.bodyTypeId));
+  if (params.excludeId != null) conditions.push(ne(vehicles.id, params.excludeId));
+  if (params.makeId != null) conditions.push(eq(vehicles.makeId, params.makeId));
+  if (params.modelId != null) conditions.push(eq(vehicles.modelId, params.modelId));
+  if (params.bodyTypeId != null) conditions.push(eq(vehicles.bodyTypeId, params.bodyTypeId));
   if (params.fuel) conditions.push(eq(vehicles.fuelType, params.fuel));
   if (params.steering) conditions.push(eq(vehicles.steering, params.steering));
-  if (params.transmission)
-    conditions.push(eq(vehicles.transmission, params.transmission));
-  if (params.minPrice != null)
-    conditions.push(gte(vehicles.price, String(params.minPrice)));
-  if (params.maxPrice != null)
-    conditions.push(lte(vehicles.price, String(params.maxPrice)));
-  if (params.minYear != null)
-    conditions.push(gte(vehicles.year, params.minYear));
-  if (params.maxYear != null)
-    conditions.push(lte(vehicles.year, params.maxYear));
-  if (params.minMileage != null)
-    conditions.push(gte(vehicles.mileage, params.minMileage));
-  if (params.maxMileage != null)
-    conditions.push(lte(vehicles.mileage, params.maxMileage));
+  if (params.transmission) conditions.push(eq(vehicles.transmission, params.transmission));
+  if (params.minPrice != null) conditions.push(gte(vehicles.price, String(params.minPrice)));
+  if (params.maxPrice != null) conditions.push(lte(vehicles.price, String(params.maxPrice)));
+  if (params.minYear != null) conditions.push(gte(vehicles.year, params.minYear));
+  if (params.maxYear != null) conditions.push(lte(vehicles.year, params.maxYear));
+  if (params.minMileage != null) conditions.push(gte(vehicles.mileage, params.minMileage));
+  if (params.maxMileage != null) conditions.push(lte(vehicles.mileage, params.maxMileage));
   if (params.color) conditions.push(eq(vehicles.color, params.color));
   if (params.drive) conditions.push(eq(vehicles.driveType, params.drive));
-  if (params.vehicleCondition)
-    conditions.push(eq(vehicles.vehicleCondition, params.vehicleCondition));
+  if (params.vehicleCondition) conditions.push(eq(vehicles.vehicleCondition, params.vehicleCondition));
   if (params.clearanceOnly) conditions.push(eq(vehicles.isClearance, true));
+
   if (params.newArrival) {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 14);
     conditions.push(gte(vehicles.createdAt, weekAgo));
   }
 
-  if (params.features?.length) {
+  if (params.features?.length && db) {
     for (const f of params.features) {
       if (!f.trim()) continue;
       conditions.push(
@@ -133,7 +115,223 @@ export async function searchVehicles(
     }
   }
 
-  const whereClause = and(...conditions);
+  return conditions;
+}
+
+function listingSelect() {
+  return {
+    id: vehicles.id,
+    stockNumber: vehicles.stockNumber,
+    makeId: vehicles.makeId,
+    modelId: vehicles.modelId,
+    bodyTypeId: vehicles.bodyTypeId,
+    title: vehicles.title,
+    year: vehicles.year,
+    month: vehicles.month,
+    price: vehicles.price,
+    mileage: vehicles.mileage,
+    fuelType: vehicles.fuelType,
+    transmission: vehicles.transmission,
+    steering: vehicles.steering,
+    engineCc: vehicles.engineCc,
+    color: vehicles.color,
+    driveType: vehicles.driveType,
+    vehicleCondition: vehicles.vehicleCondition,
+    description: vehicles.description,
+    isFeatured: vehicles.isFeatured,
+    isActive: vehicles.isActive,
+    isClearance: vehicles.isClearance,
+    createdAt: vehicles.createdAt,
+    updatedAt: vehicles.updatedAt,
+    makeName: makes.name,
+    modelName: models.name,
+    bodyTypeName: bodyTypes.name,
+    thumbnail: sql<string | null>`coalesce(${thumb}, ${thumbFallback})`,
+  };
+}
+
+async function listVehiclesWithExtraConditions(
+  params: VehicleSearchParams,
+  extraConditions: ReturnType<typeof buildVehicleConditions> = [],
+  limit = 4
+) {
+  if (!db) return [];
+
+  const rows = await db
+    .select(listingSelect())
+    .from(vehicles)
+    .innerJoin(makes, eq(vehicles.makeId, makes.id))
+    .innerJoin(models, eq(vehicles.modelId, models.id))
+    .leftJoin(bodyTypes, eq(vehicles.bodyTypeId, bodyTypes.id))
+    .where(and(...buildVehicleConditions(params), ...extraConditions))
+    .orderBy(desc(vehicles.createdAt))
+    .limit(limit);
+
+  return rows as unknown as VehicleListItem[];
+}
+
+export type SidebarFacetItem = {
+  id: number | string;
+  label: string;
+  count: number;
+  slug?: string | null;
+  imageUrl?: string | null;
+};
+
+export type VehicleSidebarData = {
+  makes: SidebarFacetItem[];
+  bodyTypes: SidebarFacetItem[];
+  fuelTypes: SidebarFacetItem[];
+  transmissions: SidebarFacetItem[];
+  steering: SidebarFacetItem[];
+  stats: {
+    total: number;
+    featured: number;
+    clearance: number;
+    newArrival: number;
+  };
+  featuredVehicles: VehicleListItem[];
+  latestVehicles: VehicleListItem[];
+  clearanceVehicles: VehicleListItem[];
+};
+
+async function countVehicles(
+  params: VehicleSearchParams,
+  extraConditions: ReturnType<typeof buildVehicleConditions> = []
+) {
+  if (!db) return 0;
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(vehicles)
+    .where(and(...buildVehicleConditions(params), ...extraConditions));
+  return row?.n ?? 0;
+}
+
+export async function getVehicleSidebarData(
+  facetScope: VehicleSearchParams,
+  contentScope: VehicleSearchParams
+): Promise<VehicleSidebarData> {
+  if (!db) {
+    return {
+      makes: [],
+      bodyTypes: [],
+      fuelTypes: [],
+      transmissions: [],
+      steering: [],
+      stats: { total: 0, featured: 0, clearance: 0, newArrival: 0 },
+      featuredVehicles: [],
+      latestVehicles: [],
+      clearanceVehicles: [],
+    };
+  }
+
+  const makeRows = await db
+    .select({
+      id: makes.id,
+      label: makes.name,
+      slug: makes.slug,
+      imageUrl: makes.logoUrl,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(vehicles)
+    .innerJoin(makes, eq(vehicles.makeId, makes.id))
+    .where(and(...buildVehicleConditions({ ...facetScope, makeId: undefined, modelId: undefined })))
+    .groupBy(makes.id, makes.name, makes.slug, makes.logoUrl)
+    .orderBy(desc(sql<number>`count(*)::int`), asc(makes.name))
+    .limit(8);
+
+  const bodyTypeRows = await db
+    .select({
+      id: bodyTypes.id,
+      label: bodyTypes.name,
+      slug: bodyTypes.slug,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(vehicles)
+    .innerJoin(bodyTypes, eq(vehicles.bodyTypeId, bodyTypes.id))
+    .where(and(...buildVehicleConditions({ ...facetScope, bodyTypeId: undefined })))
+    .groupBy(bodyTypes.id, bodyTypes.name, bodyTypes.slug)
+    .orderBy(desc(sql<number>`count(*)::int`), asc(bodyTypes.name))
+    .limit(8);
+
+  const fuelRows = await db
+    .select({
+      id: sql<string>`coalesce(${vehicles.fuelType}, 'Unknown')`,
+      label: sql<string>`coalesce(${vehicles.fuelType}, 'Unknown')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(vehicles)
+    .where(and(...buildVehicleConditions({ ...facetScope, fuel: undefined })))
+    .groupBy(vehicles.fuelType)
+    .orderBy(desc(sql<number>`count(*)::int`))
+    .limit(6);
+
+  const transmissionRows = await db
+    .select({
+      id: sql<string>`coalesce(${vehicles.transmission}, 'Unknown')`,
+      label: sql<string>`coalesce(${vehicles.transmission}, 'Unknown')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(vehicles)
+    .where(and(...buildVehicleConditions({ ...facetScope, transmission: undefined })))
+    .groupBy(vehicles.transmission)
+    .orderBy(desc(sql<number>`count(*)::int`))
+    .limit(6);
+
+  const steeringRows = await db
+    .select({
+      id: sql<string>`coalesce(${vehicles.steering}, 'Unknown')`,
+      label: sql<string>`coalesce(${vehicles.steering}, 'Unknown')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(vehicles)
+    .where(and(...buildVehicleConditions({ ...facetScope, steering: undefined })))
+    .groupBy(vehicles.steering)
+    .orderBy(desc(sql<number>`count(*)::int`))
+    .limit(4);
+
+  const [total, featured, clearance, newArrival, featuredVehicles, latestVehicles, clearanceVehicles] =
+    await Promise.all([
+      countVehicles(contentScope),
+      countVehicles(contentScope, [eq(vehicles.isFeatured, true)]),
+      countVehicles({ ...contentScope, clearanceOnly: true }),
+      countVehicles({ ...contentScope, newArrival: true }),
+      listVehiclesWithExtraConditions(contentScope, [eq(vehicles.isFeatured, true)], 4),
+      listVehiclesWithExtraConditions(contentScope, [], 4),
+      listVehiclesWithExtraConditions(
+        { ...contentScope, clearanceOnly: undefined },
+        [eq(vehicles.isClearance, true)],
+        4
+      ),
+    ]);
+
+  return {
+    makes: makeRows,
+    bodyTypes: bodyTypeRows,
+    fuelTypes: fuelRows,
+    transmissions: transmissionRows,
+    steering: steeringRows,
+    stats: {
+      total,
+      featured,
+      clearance,
+      newArrival,
+    },
+    featuredVehicles,
+    latestVehicles,
+    clearanceVehicles,
+  };
+}
+
+export async function searchVehicles(
+  params: VehicleSearchParams
+): Promise<{ rows: VehicleListItem[]; total: number }> {
+  if (!db) return { rows: [], total: 0 };
+  const page = Math.max(1, params.page ?? 1);
+  const perPage = params.perPage ?? 20;
+  const offset = (page - 1) * perPage;
+
+  const whereClause = and(...buildVehicleConditions(params));
 
   const [countRow] = await db
     .select({ n: sql<number>`count(*)::int` })
@@ -146,35 +344,7 @@ export async function searchVehicles(
   const total = countRow?.n ?? 0;
 
   const rows = await db
-    .select({
-      id: vehicles.id,
-      stockNumber: vehicles.stockNumber,
-      makeId: vehicles.makeId,
-      modelId: vehicles.modelId,
-      bodyTypeId: vehicles.bodyTypeId,
-      title: vehicles.title,
-      year: vehicles.year,
-      month: vehicles.month,
-      price: vehicles.price,
-      mileage: vehicles.mileage,
-      fuelType: vehicles.fuelType,
-      transmission: vehicles.transmission,
-      steering: vehicles.steering,
-      engineCc: vehicles.engineCc,
-      color: vehicles.color,
-      driveType: vehicles.driveType,
-      vehicleCondition: vehicles.vehicleCondition,
-      description: vehicles.description,
-      isFeatured: vehicles.isFeatured,
-      isActive: vehicles.isActive,
-      isClearance: vehicles.isClearance,
-      createdAt: vehicles.createdAt,
-      updatedAt: vehicles.updatedAt,
-      makeName: makes.name,
-      modelName: models.name,
-      bodyTypeName: bodyTypes.name,
-      thumbnail: sql<string | null>`coalesce(${thumb}, ${thumbFallback})`,
-    })
+    .select(listingSelect())
     .from(vehicles)
     .innerJoin(makes, eq(vehicles.makeId, makes.id))
     .innerJoin(models, eq(vehicles.modelId, models.id))

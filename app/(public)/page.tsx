@@ -1,7 +1,8 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { HeroBanner } from "@/components/home/HeroBanner";
 import { VehicleGrid } from "@/components/vehicle/VehicleGrid";
-import { searchVehicles } from "@/lib/queries/vehicles";
+import { getVehicleSidebarData, searchVehicles } from "@/lib/queries/vehicles";
 import {
   listMakes,
   makeVehicleCounts,
@@ -49,6 +50,111 @@ const aboutFeatures = [
   },
 ];
 
+function HomeSidebarSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border border-[#d8dee9] bg-white">
+      <div className="border-b border-[#d8dee9] bg-[#173574] px-4 py-3">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-white">{title}</h2>
+      </div>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function HomeStatTile({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: number;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="border border-[#d8dee9] bg-[#f8fafc] px-4 py-3 transition-colors hover:border-[#173574] hover:bg-[#eef4ff]"
+    >
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#64748b]">{label}</p>
+      <p className="mt-2 text-2xl font-bold text-[#111827]">{value}</p>
+    </Link>
+  );
+}
+
+function HomeFilterRow({
+  href,
+  label,
+  count,
+  imageUrl,
+}: {
+  href: string;
+  label: string;
+  count: number;
+  imageUrl?: string | null;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 border-b border-[#e5e7eb] py-3 last:border-b-0 hover:bg-[#f8fbff]"
+    >
+      {imageUrl ? (
+        <div className="relative h-10 w-14 shrink-0 border border-[#d8dee9] bg-white">
+          <Image src={imageUrl} alt={label} fill className="object-contain p-1.5" sizes="56px" />
+        </div>
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#d8dee9] bg-[#eef4ff] text-[10px] font-bold uppercase tracking-[0.14em] text-[#173574]">
+          {label.slice(0, 2)}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-[#111827]">{label}</p>
+        <p className="text-xs text-[#64748b]">{count} vehicles</p>
+      </div>
+    </Link>
+  );
+}
+
+function HomeMiniVehicleCard({
+  vehicle,
+  badge,
+}: {
+  vehicle: Awaited<ReturnType<typeof searchVehicles>>["rows"][number];
+  badge: string;
+}) {
+  return (
+    <Link
+      href={`/car/${vehicle.id}`}
+      className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 border-b border-[#e5e7eb] py-3 last:border-b-0 hover:bg-[#f8fbff]"
+    >
+      <div className="relative h-20 border border-[#d8dee9] bg-[#e5e7eb]">
+        <Image
+          src={vehicle.thumbnail || "/placeholder-car.svg"}
+          alt={vehicle.title}
+          fill
+          className="object-cover"
+          sizes="96px"
+        />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#173574]">{badge}</p>
+        <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-[#111827]">{vehicle.title}</h3>
+        <p className="mt-2 text-xs text-[#64748b]">
+          {vehicle.year} {vehicle.transmission ? `| ${vehicle.transmission}` : ""}
+        </p>
+        <p className="mt-1 text-sm font-bold text-[#173574]">
+          ${Number(vehicle.price).toLocaleString("en-US")}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 export default async function HomePage() {
   let heroImage: string | null = null;
   try {
@@ -62,13 +168,25 @@ export default async function HomePage() {
   let bodyTypes: Awaited<ReturnType<typeof listBodyTypes>> = [];
   let makeCounts = new Map<number, number>();
   let bodyCounts = new Map<number, number>();
+  let sidebarData: Awaited<ReturnType<typeof getVehicleSidebarData>> = {
+    makes: [],
+    bodyTypes: [],
+    fuelTypes: [],
+    transmissions: [],
+    steering: [],
+    stats: { total: 0, featured: 0, clearance: 0, newArrival: 0 },
+    featuredVehicles: [],
+    latestVehicles: [],
+    clearanceVehicles: [],
+  };
   try {
-    const na = await searchVehicles({ page: 1, perPage: 8, sort: "created_desc" });
+    const na = await searchVehicles({ page: 1, perPage: 12, sort: "created_desc" });
     newArrivals = na.rows;
     makes = await listMakes();
     bodyTypes = await listBodyTypes();
     makeCounts = await makeVehicleCounts();
     bodyCounts = await bodyTypeVehicleCounts();
+    sidebarData = await getVehicleSidebarData({}, { page: 1 });
   } catch {
     /* no DB */
   }
@@ -93,6 +211,185 @@ export default async function HomePage() {
   return (
     <>
       <HeroBanner imageUrl={heroImage} />
+
+      <section className="bg-[#eef1f6] py-10">
+        <div className="mx-auto max-w-[1600px] px-4">
+          <div className="grid gap-6 xl:grid-cols-[270px_minmax(0,1fr)_300px]">
+            <aside className="space-y-5">
+              <HomeSidebarSection title="Live Stock Overview">
+                <div className="grid gap-3">
+                  <HomeStatTile label="Total stock" value={sidebarData.stats.total} href="/search" />
+                  <HomeStatTile
+                    label="New arrivals"
+                    value={sidebarData.stats.newArrival}
+                    href="/search?new=1"
+                  />
+                  <HomeStatTile
+                    label="Clearance"
+                    value={sidebarData.stats.clearance}
+                    href="/all-clearance"
+                  />
+                  <HomeStatTile
+                    label="Featured"
+                    value={sidebarData.stats.featured}
+                    href="/search"
+                  />
+                </div>
+              </HomeSidebarSection>
+
+              <HomeSidebarSection title="Top Makes">
+                <div>
+                  {sidebarData.makes.map((item) => (
+                    <HomeFilterRow
+                      key={`home-make-${item.id}`}
+                      href={`/brand/${item.slug}`}
+                      label={item.label}
+                      count={item.count}
+                      imageUrl={item.imageUrl}
+                    />
+                  ))}
+                </div>
+              </HomeSidebarSection>
+
+              <HomeSidebarSection title="Body Types">
+                <div className="grid gap-0">
+                  {sidebarData.bodyTypes.map((item) => (
+                    <Link
+                      key={`home-body-${item.id}`}
+                      href={`/car-type/${item.slug}`}
+                      className="flex items-center justify-between border-b border-[#e5e7eb] py-3 text-sm last:border-b-0 hover:bg-[#f8fbff]"
+                    >
+                      <span className="font-medium text-[#111827]">{item.label}</span>
+                      <span className="text-xs font-semibold text-[#64748b]">{item.count}</span>
+                    </Link>
+                  ))}
+                </div>
+              </HomeSidebarSection>
+
+              <HomeSidebarSection title="Quick Filters">
+                <div className="grid gap-2">
+                  {quick.map((q) => (
+                    <Link
+                      key={q.href}
+                      href={q.href}
+                      className="border border-[#d8dee9] px-3 py-2 text-sm font-medium text-[#111827] transition-colors hover:border-[#173574] hover:bg-[#eef4ff] hover:text-[#173574]"
+                    >
+                      {q.label}
+                    </Link>
+                  ))}
+                </div>
+              </HomeSidebarSection>
+            </aside>
+
+            <main className="min-w-0">
+              <section className="border border-[#d8dee9] bg-white">
+                <div className="border-b border-[#d8dee9] bg-[linear-gradient(90deg,#102a66_0%,#173574_55%,#2f5eb8_100%)] px-6 py-5 text-white">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/75">
+                        Inventory Center
+                      </p>
+                      <h2 className="mt-2 text-3xl font-bold">Latest Vehicle Listings</h2>
+                      <p className="mt-2 max-w-2xl text-sm text-white/82">
+                        Real inventory, real counts, and direct links into your live stock.
+                        This section is now built as a proper marketplace board instead of a simple card strip.
+                      </p>
+                    </div>
+                    <div className="grid gap-2 text-sm sm:grid-cols-3">
+                      <div className="border border-white/20 bg-white/10 px-4 py-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                          Makes
+                        </p>
+                        <p className="mt-1 text-2xl font-bold">{makes.length}</p>
+                      </div>
+                      <div className="border border-white/20 bg-white/10 px-4 py-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                          Body types
+                        </p>
+                        <p className="mt-1 text-2xl font-bold">{bodyTypes.length}</p>
+                      </div>
+                      <div className="border border-white/20 bg-white/10 px-4 py-3">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                          Fresh units
+                        </p>
+                        <p className="mt-1 text-2xl font-bold">{newArrivals.length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-b border-[#d8dee9] bg-[#f8fafc] px-6 py-4">
+                  <div className="grid gap-3 md:grid-cols-4">
+                    {priceTiles.map((p) => (
+                      <Link
+                        key={p.href}
+                        href={p.href}
+                        className="border border-[#d8dee9] bg-white px-4 py-3 text-sm font-semibold text-[#173574] transition-colors hover:border-[#173574] hover:bg-[#eef4ff]"
+                      >
+                        {p.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="px-6 py-6">
+                  <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#e5e7eb] pb-4">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#64748b]">
+                        New Arrivals Grid
+                      </p>
+                      <h3 className="mt-1 text-2xl font-bold text-[#111827]">Current Stock Feed</h3>
+                    </div>
+                    <Link
+                      href="/all-new-arrival"
+                      className="text-sm font-semibold text-[#173574] hover:underline"
+                    >
+                      View full inventory
+                    </Link>
+                  </div>
+                  <VehicleGrid vehicles={newArrivals} />
+                </div>
+              </section>
+            </main>
+
+            <aside className="space-y-5">
+              <HomeSidebarSection title="Featured Stock">
+                <div>
+                  {(sidebarData.featuredVehicles.length
+                    ? sidebarData.featuredVehicles
+                    : sidebarData.latestVehicles
+                  ).map((vehicle) => (
+                    <HomeMiniVehicleCard key={`featured-${vehicle.id}`} vehicle={vehicle} badge="Featured" />
+                  ))}
+                </div>
+              </HomeSidebarSection>
+
+              <HomeSidebarSection title="Fresh Arrivals">
+                <div>
+                  {sidebarData.latestVehicles.map((vehicle) => (
+                    <HomeMiniVehicleCard key={`latest-${vehicle.id}`} vehicle={vehicle} badge="New" />
+                  ))}
+                </div>
+              </HomeSidebarSection>
+
+              <HomeSidebarSection title="Clearance Stock">
+                <div>
+                  {(sidebarData.clearanceVehicles.length
+                    ? sidebarData.clearanceVehicles
+                    : sidebarData.latestVehicles
+                  ).map((vehicle) => (
+                    <HomeMiniVehicleCard
+                      key={`clearance-${vehicle.id}`}
+                      vehicle={vehicle}
+                      badge="Clearance"
+                    />
+                  ))}
+                </div>
+              </HomeSidebarSection>
+            </aside>
+          </div>
+        </div>
+      </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14">
         <div className="overflow-hidden rounded-[2rem] border border-[#d9e0ef] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
@@ -199,19 +496,6 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-14">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <h2 className="text-2xl font-bold text-[#0a0a0a]">New arrivals</h2>
-          <Link
-            href="/all-new-arrival"
-            className="text-sm font-semibold text-[#0c47a5] hover:underline"
-          >
-            See all
-          </Link>
-        </div>
-        <VehicleGrid vehicles={newArrivals} />
       </section>
 
       <section className="border-y border-[#e0e0e0] bg-[#f5f5f5] py-14">

@@ -1,9 +1,192 @@
-import { searchVehicles, type VehicleSearchParams } from "@/lib/queries/vehicles";
-import { parseVehicleSearchParams } from "@/lib/listing-params";
+import Image from "next/image";
+import Link from "next/link";
+import { Suspense } from "react";
+import type { ReactNode } from "react";
+import type { VehicleListItem } from "@/types";
 import { VehicleGrid } from "@/components/vehicle/VehicleGrid";
+import { formatUsd } from "@/lib/utils";
+import {
+  getVehicleSidebarData,
+  searchVehicles,
+  type SidebarFacetItem,
+  type VehicleSearchParams,
+} from "@/lib/queries/vehicles";
+import {
+  buildVehicleSearchHref,
+  parseVehicleSearchParams,
+} from "@/lib/listing-params";
 import { SortDropdown } from "./SortDropdown";
 import { ListingPagination } from "./ListingPagination";
-import { Suspense } from "react";
+
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function SidebarPanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-[1.5rem] border border-[#d7dfef] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+      <div className="bg-[linear-gradient(135deg,#102a66_0%,#0c47a5_100%)] px-4 py-3">
+        <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-white">{title}</h2>
+      </div>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function FilterLink({
+  href,
+  label,
+  count,
+  active,
+  imageUrl,
+}: {
+  href: string;
+  label: string;
+  count: number;
+  active?: boolean;
+  imageUrl?: string | null;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-3 rounded-2xl border px-3 py-3 transition-colors",
+        active
+          ? "border-[#0c47a5] bg-[#eef5ff] text-[#0c47a5]"
+          : "border-[#e2e8f0] bg-white hover:border-[#0c47a5] hover:bg-[#f8fbff]"
+      )}
+    >
+      {imageUrl ? (
+        <div className="relative h-11 w-14 overflow-hidden rounded-xl bg-[#f8fafc]">
+          <Image src={imageUrl} alt={label} fill className="object-contain p-2" sizes="56px" />
+        </div>
+      ) : (
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eaf2ff] text-xs font-bold uppercase tracking-[0.18em] text-[#0c47a5]">
+          {label.slice(0, 2)}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-[#111827]">{label}</p>
+        <p className="text-xs text-[#64748b]">{count} vehicles</p>
+      </div>
+    </Link>
+  );
+}
+
+function CompactFilterList({
+  title,
+  items,
+  activeValue,
+  buildHref,
+}: {
+  title: string;
+  items: SidebarFacetItem[];
+  activeValue?: string | number | null;
+  buildHref: (item: SidebarFacetItem) => string;
+}) {
+  if (!items.length) return null;
+
+  return (
+    <div>
+      <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[#64748b]">{title}</h3>
+      <div className="space-y-2">
+        {items.map((item) => (
+          <Link
+            key={`${title}-${item.id}`}
+            href={buildHref(item)}
+            className={cn(
+              "flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition-colors",
+              activeValue === item.id || activeValue === item.label
+                ? "border-[#0c47a5] bg-[#eef5ff] text-[#0c47a5]"
+                : "border-[#e2e8f0] bg-white text-[#111827] hover:border-[#0c47a5]"
+            )}
+          >
+            <span className="truncate font-medium">{item.label}</span>
+            <span className="ml-3 rounded-full bg-[#f1f5f9] px-2 py-0.5 text-xs text-[#475569]">
+              {item.count}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SidebarVehicleCard({
+  title,
+  vehicle,
+}: {
+  title: string;
+  vehicle: VehicleListItem;
+}) {
+  const price = parseFloat(String(vehicle.price));
+
+  return (
+    <Link
+      href={`/car/${vehicle.id}`}
+      className="group flex gap-3 rounded-2xl border border-[#e2e8f0] bg-white p-3 transition-colors hover:border-[#0c47a5] hover:bg-[#f8fbff]"
+    >
+      <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl bg-[#e5e7eb]">
+        <Image
+          src={vehicle.thumbnail || "/placeholder-car.svg"}
+          alt={vehicle.title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+          sizes="112px"
+        />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#0c47a5]">{title}</p>
+        <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-[#111827]">{vehicle.title}</h3>
+        <p className="mt-2 text-sm font-bold text-[#0c47a5]">{formatUsd(price)}</p>
+        <p className="mt-1 text-xs text-[#64748b]">
+          {vehicle.year} {vehicle.transmission ? `• ${vehicle.transmission}` : ""}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function StatCard({
+  href,
+  label,
+  value,
+  active,
+}: {
+  href: string;
+  label: string;
+  value: number;
+  active?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "rounded-2xl border px-3 py-3 transition-colors",
+        active
+          ? "border-[#0c47a5] bg-[#eef5ff]"
+          : "border-[#dbe3f2] bg-[#f8fbff] hover:border-[#0c47a5]"
+      )}
+    >
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#64748b]">{label}</p>
+      <p className="mt-2 text-2xl font-bold text-[#111827]">{value}</p>
+    </Link>
+  );
+}
+
+function normalizeSidebarParams(params: VehicleSearchParams): VehicleSearchParams {
+  return {
+    ...params,
+    page: 1,
+    perPage: undefined,
+  };
+}
 
 export async function VehicleListingSection({
   title,
@@ -24,33 +207,259 @@ export async function VehicleListingSection({
     perPage: 20,
   };
 
-  const { rows, total } = await searchVehicles(merged);
+  const filterState = normalizeSidebarParams({
+    ...merged,
+    sort: merged.sort ?? null,
+  });
+  const facetScope = normalizeSidebarParams({
+    ...merged,
+    sort: undefined,
+  });
+
+  const [{ rows, total }, sidebar] = await Promise.all([
+    searchVehicles(merged),
+    getVehicleSidebarData(facetScope, filterState),
+  ]);
+
   const totalPages = Math.max(1, Math.ceil(total / (merged.perPage ?? 20)));
+  const resetHref = buildVehicleSearchHref(normalizeSidebarParams({ ...baseParams }));
+
+  const makeHref = (id: number) =>
+    buildVehicleSearchHref({
+      ...filterState,
+      makeId: id,
+      modelId: undefined,
+      page: 1,
+    });
+
+  const bodyTypeHref = (id: number) =>
+    buildVehicleSearchHref({
+      ...filterState,
+      bodyTypeId: id,
+      page: 1,
+    });
+
+  const fuelHref = (value: string) =>
+    buildVehicleSearchHref({
+      ...filterState,
+      fuel: value === "Unknown" ? undefined : value,
+      page: 1,
+    });
+
+  const transmissionHref = (value: string) =>
+    buildVehicleSearchHref({
+      ...filterState,
+      transmission: value === "Unknown" ? undefined : value,
+      page: 1,
+    });
+
+  const steeringHref = (value: string) =>
+    buildVehicleSearchHref({
+      ...filterState,
+      steering: value === "Unknown" ? undefined : value,
+      page: 1,
+    });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div className="mx-auto max-w-[1600px] px-4 py-10">
       <nav className="mb-4 text-sm text-[#6b7280]">
-        <a href="/" className="hover:text-[#0c47a5]">
+        <Link href="/" className="hover:text-[#0c47a5]">
           Home
-        </a>
+        </Link>
         <span className="mx-2">/</span>
         <span>{breadcrumb}</span>
       </nav>
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-[#0a0a0a] md:text-3xl">
-          {title}{" "}
-          <span className="text-lg font-normal text-[#6b7280]">
-            ({total} found)
-          </span>
-        </h1>
-        <Suspense fallback={<div className="h-10 w-48 animate-pulse rounded-lg bg-[#f5f5f5]" />}>
-          <SortDropdown />
-        </Suspense>
+
+      <div className="mb-8 overflow-hidden rounded-[2rem] border border-[#d7dfef] bg-[linear-gradient(135deg,#081d4d_0%,#0c47a5_45%,#dce9ff_100%)] p-6 text-white shadow-[0_28px_80px_rgba(12,71,165,0.18)] md:p-8">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/75">
+              Live Vehicle Inventory
+            </p>
+            <h1 className="mt-3 text-3xl font-bold md:text-4xl">
+              {title} <span className="text-white/80">({total} found)</span>
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/88 md:text-base">
+              Explore live stock with database-backed filters, real counts, and matching
+              vehicle highlights pulled directly from your inventory.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <StatCard
+              href={buildVehicleSearchHref(filterState)}
+              label="Visible stock"
+              value={sidebar.stats.total}
+              active
+            />
+            <StatCard
+              href={buildVehicleSearchHref({ ...filterState, newArrival: true, page: 1 })}
+              label="New arrivals"
+              value={sidebar.stats.newArrival}
+              active={merged.newArrival}
+            />
+            <StatCard
+              href={buildVehicleSearchHref({ ...filterState, clearanceOnly: true, page: 1 })}
+              label="Clearance"
+              value={sidebar.stats.clearance}
+              active={merged.clearanceOnly}
+            />
+          </div>
+        </div>
       </div>
-      <VehicleGrid vehicles={rows} />
-      <Suspense>
-        <ListingPagination page={merged.page ?? 1} totalPages={totalPages} />
-      </Suspense>
+
+      <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_300px]">
+        <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+          <SidebarPanel title="Inventory Filters">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <StatCard
+                href={buildVehicleSearchHref(filterState)}
+                label="All stock"
+                value={sidebar.stats.total}
+              />
+              <StatCard
+                href={buildVehicleSearchHref({ ...filterState, clearanceOnly: true, page: 1 })}
+                label="Clearance"
+                value={sidebar.stats.clearance}
+                active={merged.clearanceOnly}
+              />
+              <StatCard
+                href={buildVehicleSearchHref({ ...filterState, newArrival: true, page: 1 })}
+                label="Fresh stock"
+                value={sidebar.stats.newArrival}
+                active={merged.newArrival}
+              />
+              <StatCard
+                href={buildVehicleSearchHref(filterState)}
+                label="Featured"
+                value={sidebar.stats.featured}
+              />
+            </div>
+            <Link
+              href={resetHref}
+              className="mt-4 inline-flex text-sm font-semibold text-[#0c47a5] hover:underline"
+            >
+              Reset filters
+            </Link>
+          </SidebarPanel>
+
+          <SidebarPanel title="Top Makes">
+            <div className="space-y-3">
+              {sidebar.makes.map((item) => (
+                <FilterLink
+                  key={`make-${item.id}`}
+                  href={makeHref(Number(item.id))}
+                  label={item.label}
+                  count={item.count}
+                  active={merged.makeId === Number(item.id)}
+                  imageUrl={item.imageUrl}
+                />
+              ))}
+            </div>
+          </SidebarPanel>
+
+          <SidebarPanel title="Body Types">
+            <CompactFilterList
+              title="Browse by shape"
+              items={sidebar.bodyTypes}
+              activeValue={merged.bodyTypeId}
+              buildHref={(item) => bodyTypeHref(Number(item.id))}
+            />
+          </SidebarPanel>
+
+          <SidebarPanel title="Specifications">
+            <div className="space-y-6">
+              <CompactFilterList
+                title="Fuel type"
+                items={sidebar.fuelTypes}
+                activeValue={merged.fuel}
+                buildHref={(item) => fuelHref(String(item.id))}
+              />
+              <CompactFilterList
+                title="Transmission"
+                items={sidebar.transmissions}
+                activeValue={merged.transmission}
+                buildHref={(item) => transmissionHref(String(item.id))}
+              />
+              <CompactFilterList
+                title="Steering"
+                items={sidebar.steering}
+                activeValue={merged.steering}
+                buildHref={(item) => steeringHref(String(item.id))}
+              />
+            </div>
+          </SidebarPanel>
+        </aside>
+
+        <main className="min-w-0">
+          <div className="mb-6 rounded-[1.75rem] border border-[#d7dfef] bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#64748b]">
+                  Matching Inventory
+                </p>
+                <h2 className="mt-2 text-2xl font-bold text-[#111827]">{title}</h2>
+              </div>
+              <Suspense
+                fallback={<div className="h-10 w-48 animate-pulse rounded-lg bg-[#f5f5f5]" />}
+              >
+                <SortDropdown />
+              </Suspense>
+            </div>
+          </div>
+
+          {rows.length ? (
+            <>
+              <VehicleGrid vehicles={rows} />
+              <Suspense>
+                <ListingPagination page={merged.page ?? 1} totalPages={totalPages} />
+              </Suspense>
+            </>
+          ) : (
+            <div className="rounded-[1.75rem] border border-dashed border-[#cbd5e1] bg-white px-6 py-12 text-center shadow-sm">
+              <h3 className="text-xl font-semibold text-[#111827]">No vehicles matched these filters</h3>
+              <p className="mt-3 text-sm text-[#64748b]">
+                Try clearing one or two filters and we&apos;ll pull in a broader set of live stock.
+              </p>
+              <Link
+                href={resetHref}
+                className="mt-5 inline-flex rounded-xl bg-[#0c47a5] px-5 py-3 text-sm font-semibold text-white hover:bg-[#0a3d91]"
+              >
+                View all matching stock
+              </Link>
+            </div>
+          )}
+        </main>
+
+        <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+          <SidebarPanel title="Featured Stock">
+            <div className="space-y-3">
+              {(sidebar.featuredVehicles.length ? sidebar.featuredVehicles : sidebar.latestVehicles).map(
+                (vehicle) => (
+                  <SidebarVehicleCard key={`featured-${vehicle.id}`} title="Featured" vehicle={vehicle} />
+                )
+              )}
+            </div>
+          </SidebarPanel>
+
+          <SidebarPanel title="Fresh Arrivals">
+            <div className="space-y-3">
+              {sidebar.latestVehicles.map((vehicle) => (
+                <SidebarVehicleCard key={`latest-${vehicle.id}`} title="New" vehicle={vehicle} />
+              ))}
+            </div>
+          </SidebarPanel>
+
+          <SidebarPanel title="Clearance Stock">
+            <div className="space-y-3">
+              {(sidebar.clearanceVehicles.length ? sidebar.clearanceVehicles : sidebar.latestVehicles).map(
+                (vehicle) => (
+                  <SidebarVehicleCard key={`clearance-${vehicle.id}`} title="Clearance" vehicle={vehicle} />
+                )
+              )}
+            </div>
+          </SidebarPanel>
+        </aside>
+      </div>
     </div>
   );
 }

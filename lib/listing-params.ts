@@ -53,3 +53,38 @@ export function parseVehicleSearchParams(
     page: num(first(sp.page)) ?? 1,
   };
 }
+
+export function buildVehicleSearchQuery(params: VehicleSearchParams): string {
+  const sp = new URLSearchParams();
+
+  if (params.makeId != null) sp.set("make_id", String(params.makeId));
+  if (params.modelId != null) sp.set("model_id", String(params.modelId));
+  if (params.bodyTypeId != null) sp.set("body_type", String(params.bodyTypeId));
+  if (params.fuel) sp.set("fuel", params.fuel);
+  if (params.steering) sp.set("steering", params.steering);
+  if (params.transmission) sp.set("transmission", params.transmission);
+  if (params.minPrice != null) sp.set("min_price", String(params.minPrice));
+  if (params.maxPrice != null) sp.set("max_price", String(params.maxPrice));
+  if (params.minYear != null) sp.set("min_year", String(params.minYear));
+  if (params.maxYear != null) sp.set("max_year", String(params.maxYear));
+  if (params.minMileage != null) sp.set("min_mileage", String(params.minMileage));
+  if (params.maxMileage != null) sp.set("max_mileage", String(params.maxMileage));
+  if (params.color) sp.set("color", params.color);
+  if (params.drive) sp.set("drive", params.drive);
+  if (params.vehicleCondition) sp.set("condition", params.vehicleCondition);
+  if (params.clearanceOnly) sp.set("clearance", "1");
+  if (params.newArrival) sp.set("new", "1");
+  if (params.features?.length) sp.set("features", params.features.join(","));
+  if (params.sort) sp.set("sort", params.sort);
+  if (params.page && params.page > 1) sp.set("page", String(params.page));
+
+  return sp.toString();
+}
+
+export function buildVehicleSearchHref(
+  params: VehicleSearchParams,
+  pathname = "/search"
+): string {
+  const query = buildVehicleSearchQuery(params);
+  return query ? `${pathname}?${query}` : pathname;
+}
