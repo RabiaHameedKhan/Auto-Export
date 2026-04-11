@@ -3,6 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AnnouncementBanner } from "@/components/home/AnnouncementBanner";
 import { getActiveAnnouncements } from "@/lib/queries/site";
+import { getVehicleSidebarData } from "@/lib/queries/vehicles";
 import { getSiteSettings } from "@/lib/queries/site";
 import { SITE_CONTACT } from "@/lib/site-contact";
 
@@ -15,6 +16,8 @@ export default async function PublicLayout({
 }) {
   let announcements: { id: number; title: string | null; content: string }[] = [];
   let settings: Record<string, string | null> = {};
+  let inventoryNav: Awaited<ReturnType<typeof getVehicleSidebarData>>["makes"] = [];
+  let inventoryBodyTypes: Awaited<ReturnType<typeof getVehicleSidebarData>>["bodyTypes"] = [];
   try {
     const raw = await getActiveAnnouncements();
     announcements = raw.map((a) => ({
@@ -29,6 +32,9 @@ export default async function PublicLayout({
       "phone",
       "whatsapp",
     ]);
+    const sidebarData = await getVehicleSidebarData({}, { page: 1 });
+    inventoryNav = sidebarData.makes;
+    inventoryBodyTypes = sidebarData.bodyTypes;
   } catch {
     /* DB not configured */
   }
@@ -42,7 +48,13 @@ export default async function PublicLayout({
   return (
     <>
       <TopBar hours={SITE_CONTACT.hours} phone={phone} email={email} />
-      <Navbar companyName={companyName} phone={phone} whatsapp={whatsapp} />
+      <Navbar
+        companyName={companyName}
+        phone={phone}
+        whatsapp={whatsapp}
+        topMakes={inventoryNav}
+        bodyTypes={inventoryBodyTypes}
+      />
       <AnnouncementBanner items={announcements} />
       <main className="min-h-[60vh]">{children}</main>
       <Footer
@@ -50,6 +62,8 @@ export default async function PublicLayout({
         address={address}
         email={email}
         phone={phone}
+        topMakes={inventoryNav}
+        bodyTypes={inventoryBodyTypes}
       />
     </>
   );

@@ -2,15 +2,25 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { priceFilterLinks, quickFilterLinks } from "@/lib/inventory-links";
+import type { SidebarFacetItem } from "@/lib/queries/vehicles";
 import { cn } from "@/lib/utils";
 
 type Props = {
   companyName: string;
   phone: string;
   whatsapp: string;
+  topMakes?: SidebarFacetItem[];
+  bodyTypes?: SidebarFacetItem[];
 };
 
-export function MobileMenu({ companyName, phone, whatsapp }: Props) {
+export function MobileMenu({
+  companyName,
+  phone,
+  whatsapp,
+  topMakes = [],
+  bodyTypes = [],
+}: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -50,7 +60,7 @@ export function MobileMenu({ companyName, phone, whatsapp }: Props) {
             ✕
           </button>
         </div>
-        <nav className="flex flex-col gap-1 p-4 text-sm">
+        <nav className="flex flex-col gap-1 overflow-y-auto p-4 text-sm">
           <Link href="/search" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
             Used Cars
           </Link>
@@ -69,6 +79,66 @@ export function MobileMenu({ companyName, phone, whatsapp }: Props) {
           <Link href="/contact" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
             Contact
           </Link>
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+              By Make
+            </p>
+            {topMakes.map((item) => (
+              <Link
+                key={`mobile-make-${item.id}`}
+                href={item.slug ? `/brand/${item.slug}` : "/search"}
+                className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-2 border-t border-white/10 pt-4">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+              By Body Type
+            </p>
+            {bodyTypes.map((item) => (
+              <Link
+                key={`mobile-body-${item.id}`}
+                href={item.slug ? `/car-type/${item.slug}` : "/search"}
+                className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-2 border-t border-white/10 pt-4">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+              By Price
+            </p>
+            {priceFilterLinks.map((item) => (
+              <Link
+                key={`mobile-price-${item.href}`}
+                href={item.href}
+                className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-2 border-t border-white/10 pt-4">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+              Quick Filters
+            </p>
+            {quickFilterLinks.map((item) => (
+              <Link
+                key={`mobile-quick-${item.href}`}
+                href={item.href}
+                className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
           <a
             href={`tel:${phone.replace(/\s/g, "")}`}
             className="mt-4 rounded-lg bg-[#e6d53c] px-3 py-3 text-center font-semibold text-black"

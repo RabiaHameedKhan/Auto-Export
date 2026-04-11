@@ -4,46 +4,51 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { MobileMenu } from "./MobileMenu";
+import { priceFilterLinks, quickFilterLinks } from "@/lib/inventory-links";
+import type { SidebarFacetItem } from "@/lib/queries/vehicles";
 import { SITE_CONTACT } from "@/lib/site-contact";
 import { cn } from "@/lib/utils";
-
-const mega = [
-  {
-    title: "By Make",
-    href: "/search",
-    children: [] as { label: string; href: string }[],
-  },
-  {
-    title: "By Type",
-    href: "/search",
-    children: [
-      { label: "Standard Cab", href: "/car-type/standard-cab" },
-      { label: "Double Cab", href: "/car-type/double-cab" },
-    ],
-  },
-  {
-    title: "By Price",
-    href: "/search",
-    children: [
-      { label: "Under $8k", href: "/price-under/8000" },
-      { label: "$8k - $12k", href: "/by-price/8000/12000" },
-      { label: "Over $20k", href: "/price-over/20000" },
-    ],
-  },
-];
 
 type NavbarProps = {
   companyName?: string;
   phone?: string;
   whatsapp?: string;
+  topMakes?: SidebarFacetItem[];
+  bodyTypes?: SidebarFacetItem[];
 };
 
 export function Navbar({
   companyName = "9 Yard Trading",
   phone = SITE_CONTACT.phone,
   whatsapp = SITE_CONTACT.whatsapp,
+  topMakes = [],
+  bodyTypes = [],
 }: NavbarProps) {
   const [open, setOpen] = useState<string | null>(null);
+  const mega = [
+    {
+      title: "By Make",
+      children: topMakes.map((item) => ({
+        label: item.label,
+        href: item.slug ? `/brand/${item.slug}` : "/search",
+      })),
+    },
+    {
+      title: "By Body Type",
+      children: bodyTypes.map((item) => ({
+        label: item.label,
+        href: item.slug ? `/car-type/${item.slug}` : "/search",
+      })),
+    },
+    {
+      title: "By Price",
+      children: [...priceFilterLinks],
+    },
+    {
+      title: "Quick Filters",
+      children: [...quickFilterLinks],
+    },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#e0e0e0] bg-[#0c47a5] text-white shadow-sm">
@@ -77,34 +82,20 @@ export function Navbar({
               Used Cars
             </button>
             {open === "used" && (
-              <div className="absolute left-0 top-full z-50 mt-1 flex min-w-[520px] gap-6 rounded-xl border border-[#e0e0e0] bg-white p-6 text-[#0a0a0a] shadow-xl">
+              <div className="absolute left-0 top-full z-50 mt-1 grid min-w-[760px] grid-cols-4 gap-6 rounded-xl border border-[#e0e0e0] bg-white p-6 text-[#0a0a0a] shadow-xl">
                 {mega.map((col) => (
                   <div key={col.title} className="min-w-[140px]">
                     <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
                       {col.title}
                     </div>
                     <ul className="space-y-1">
-                      {col.children.length === 0 ? (
-                        <li>
-                          <Link
-                            href="/search"
-                            className="text-sm text-[#0c47a5] hover:underline"
-                          >
-                            Browse all used
+                      {col.children.map((item) => (
+                        <li key={`${col.title}-${item.href}`}>
+                          <Link href={item.href} className="text-sm hover:text-[#0c47a5]">
+                            {item.label}
                           </Link>
                         </li>
-                      ) : (
-                        col.children.map((c) => (
-                          <li key={c.href}>
-                            <Link
-                              href={c.href}
-                              className="text-sm hover:text-[#0c47a5]"
-                            >
-                              {c.label}
-                            </Link>
-                          </li>
-                        ))
-                      )}
+                      ))}
                     </ul>
                   </div>
                 ))}
@@ -150,7 +141,13 @@ export function Navbar({
           <span className="text-sm opacity-90">{phone}</span>
         </div>
 
-        <MobileMenu companyName={companyName} phone={phone} whatsapp={whatsapp} />
+        <MobileMenu
+          companyName={companyName}
+          phone={phone}
+          whatsapp={whatsapp}
+          topMakes={topMakes}
+          bodyTypes={bodyTypes}
+        />
       </nav>
     </header>
   );

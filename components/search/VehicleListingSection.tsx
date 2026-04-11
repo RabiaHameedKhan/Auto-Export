@@ -4,11 +4,11 @@ import { Suspense } from "react";
 import type { ReactNode } from "react";
 import type { VehicleListItem } from "@/types";
 import { VehicleGrid } from "@/components/vehicle/VehicleGrid";
+import { InventorySidebar, SidebarStatCard } from "@/components/vehicle/InventorySidebar";
 import { formatUsd } from "@/lib/utils";
 import {
   getVehicleSidebarData,
   searchVehicles,
-  type SidebarFacetItem,
   type VehicleSearchParams,
 } from "@/lib/queries/vehicles";
 import {
@@ -17,10 +17,6 @@ import {
 } from "@/lib/listing-params";
 import { SortDropdown } from "./SortDropdown";
 import { ListingPagination } from "./ListingPagination";
-
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}
 
 function SidebarPanel({
   title,
@@ -36,85 +32,6 @@ function SidebarPanel({
       </div>
       <div className="p-4">{children}</div>
     </section>
-  );
-}
-
-function FilterLink({
-  href,
-  label,
-  count,
-  active,
-  imageUrl,
-}: {
-  href: string;
-  label: string;
-  count: number;
-  active?: boolean;
-  imageUrl?: string | null;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "flex items-center gap-3 rounded-2xl border px-3 py-3 transition-colors",
-        active
-          ? "border-[#0c47a5] bg-[#eef5ff] text-[#0c47a5]"
-          : "border-[#e2e8f0] bg-white hover:border-[#0c47a5] hover:bg-[#f8fbff]"
-      )}
-    >
-      {imageUrl ? (
-        <div className="relative h-11 w-14 overflow-hidden rounded-xl bg-[#f8fafc]">
-          <Image src={imageUrl} alt={label} fill className="object-contain p-2" sizes="56px" />
-        </div>
-      ) : (
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eaf2ff] text-xs font-bold uppercase tracking-[0.18em] text-[#0c47a5]">
-          {label.slice(0, 2)}
-        </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-[#111827]">{label}</p>
-        <p className="text-xs text-[#64748b]">{count} vehicles</p>
-      </div>
-    </Link>
-  );
-}
-
-function CompactFilterList({
-  title,
-  items,
-  activeValue,
-  buildHref,
-}: {
-  title: string;
-  items: SidebarFacetItem[];
-  activeValue?: string | number | null;
-  buildHref: (item: SidebarFacetItem) => string;
-}) {
-  if (!items.length) return null;
-
-  return (
-    <div>
-      <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[#64748b]">{title}</h3>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <Link
-            key={`${title}-${item.id}`}
-            href={buildHref(item)}
-            className={cn(
-              "flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition-colors",
-              activeValue === item.id || activeValue === item.label
-                ? "border-[#0c47a5] bg-[#eef5ff] text-[#0c47a5]"
-                : "border-[#e2e8f0] bg-white text-[#111827] hover:border-[#0c47a5]"
-            )}
-          >
-            <span className="truncate font-medium">{item.label}</span>
-            <span className="ml-3 rounded-full bg-[#f1f5f9] px-2 py-0.5 text-xs text-[#475569]">
-              {item.count}
-            </span>
-          </Link>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -149,33 +66,6 @@ function SidebarVehicleCard({
           {vehicle.year} {vehicle.transmission ? `• ${vehicle.transmission}` : ""}
         </p>
       </div>
-    </Link>
-  );
-}
-
-function StatCard({
-  href,
-  label,
-  value,
-  active,
-}: {
-  href: string;
-  label: string;
-  value: number;
-  active?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "rounded-2xl border px-3 py-3 transition-colors",
-        active
-          ? "border-[#0c47a5] bg-[#eef5ff]"
-          : "border-[#dbe3f2] bg-[#f8fbff] hover:border-[#0c47a5]"
-      )}
-    >
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#64748b]">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-[#111827]">{value}</p>
     </Link>
   );
 }
@@ -285,19 +175,19 @@ export async function VehicleListingSection({
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatCard
+            <SidebarStatCard
               href={buildVehicleSearchHref(filterState)}
               label="Visible stock"
               value={sidebar.stats.total}
               active
             />
-            <StatCard
+            <SidebarStatCard
               href={buildVehicleSearchHref({ ...filterState, newArrival: true, page: 1 })}
               label="New arrivals"
               value={sidebar.stats.newArrival}
               active={merged.newArrival}
             />
-            <StatCard
+            <SidebarStatCard
               href={buildVehicleSearchHref({ ...filterState, clearanceOnly: true, page: 1 })}
               label="Clearance"
               value={sidebar.stats.clearance}
@@ -308,87 +198,63 @@ export async function VehicleListingSection({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_300px]">
-        <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
-          <SidebarPanel title="Inventory Filters">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <StatCard
-                href={buildVehicleSearchHref(filterState)}
-                label="All stock"
-                value={sidebar.stats.total}
-              />
-              <StatCard
-                href={buildVehicleSearchHref({ ...filterState, clearanceOnly: true, page: 1 })}
-                label="Clearance"
-                value={sidebar.stats.clearance}
-                active={merged.clearanceOnly}
-              />
-              <StatCard
-                href={buildVehicleSearchHref({ ...filterState, newArrival: true, page: 1 })}
-                label="Fresh stock"
-                value={sidebar.stats.newArrival}
-                active={merged.newArrival}
-              />
-              <StatCard
-                href={buildVehicleSearchHref(filterState)}
-                label="Featured"
-                value={sidebar.stats.featured}
-              />
-            </div>
-            <Link
-              href={resetHref}
-              className="mt-4 inline-flex text-sm font-semibold text-[#0c47a5] hover:underline"
-            >
-              Reset filters
-            </Link>
-          </SidebarPanel>
-
-          <SidebarPanel title="Top Makes">
-            <div className="space-y-3">
-              {sidebar.makes.map((item) => (
-                <FilterLink
-                  key={`make-${item.id}`}
-                  href={makeHref(Number(item.id))}
-                  label={item.label}
-                  count={item.count}
-                  active={merged.makeId === Number(item.id)}
-                  imageUrl={item.imageUrl}
-                />
-              ))}
-            </div>
-          </SidebarPanel>
-
-          <SidebarPanel title="Body Types">
-            <CompactFilterList
-              title="Browse by shape"
-              items={sidebar.bodyTypes}
-              activeValue={merged.bodyTypeId}
-              buildHref={(item) => bodyTypeHref(Number(item.id))}
-            />
-          </SidebarPanel>
-
-          <SidebarPanel title="Specifications">
-            <div className="space-y-6">
-              <CompactFilterList
-                title="Fuel type"
-                items={sidebar.fuelTypes}
-                activeValue={merged.fuel}
-                buildHref={(item) => fuelHref(String(item.id))}
-              />
-              <CompactFilterList
-                title="Transmission"
-                items={sidebar.transmissions}
-                activeValue={merged.transmission}
-                buildHref={(item) => transmissionHref(String(item.id))}
-              />
-              <CompactFilterList
-                title="Steering"
-                items={sidebar.steering}
-                activeValue={merged.steering}
-                buildHref={(item) => steeringHref(String(item.id))}
-              />
-            </div>
-          </SidebarPanel>
-        </aside>
+        <InventorySidebar
+          className="xl:sticky xl:top-24 xl:self-start"
+          stats={[
+            { href: buildVehicleSearchHref(filterState), label: "All stock", value: sidebar.stats.total },
+            {
+              href: buildVehicleSearchHref({ ...filterState, clearanceOnly: true, page: 1 }),
+              label: "Clearance",
+              value: sidebar.stats.clearance,
+              active: merged.clearanceOnly,
+            },
+            {
+              href: buildVehicleSearchHref({ ...filterState, newArrival: true, page: 1 }),
+              label: "Fresh stock",
+              value: sidebar.stats.newArrival,
+              active: merged.newArrival,
+            },
+            { href: buildVehicleSearchHref(filterState), label: "Featured", value: sidebar.stats.featured },
+          ]}
+          resetHref={resetHref}
+          makes={sidebar.makes}
+          bodyTypes={sidebar.bodyTypes}
+          fuelTypes={sidebar.fuelTypes}
+          transmissions={sidebar.transmissions}
+          steering={sidebar.steering}
+          makeHref={(item) => makeHref(Number(item.id))}
+          bodyTypeHref={(item) => bodyTypeHref(Number(item.id))}
+          fuelHref={(item) => fuelHref(String(item.id))}
+          transmissionHref={(item) => transmissionHref(String(item.id))}
+          steeringHref={(item) => steeringHref(String(item.id))}
+          activeMakeId={merged.makeId}
+          activeBodyTypeId={merged.bodyTypeId}
+          activeFuel={merged.fuel}
+          activeTransmission={merged.transmission}
+          activeSteering={merged.steering}
+          activeQuickHref={
+            merged.fuel
+              ? `/search?fuel=${merged.fuel}`
+              : merged.steering
+                ? `/search?steering=${merged.steering}`
+                : merged.transmission
+                  ? `/search?transmission=${merged.transmission}`
+                  : undefined
+          }
+          activePriceHref={
+            merged.minPrice != null || merged.maxPrice != null
+              ? merged.minPrice === 8000 && merged.maxPrice === 12000
+                ? "/by-price/8000/12000"
+                : merged.minPrice === 12000 && merged.maxPrice === 20000
+                  ? "/by-price/12000/20000"
+                  : merged.maxPrice === 8000
+                    ? "/price-under/8000"
+                    : merged.minPrice === 20000
+                      ? "/price-over/20000"
+                      : undefined
+              : undefined
+          }
+        />
 
         <main className="min-w-0">
           <div className="mb-6 rounded-[1.75rem] border border-[#d7dfef] bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-6">
