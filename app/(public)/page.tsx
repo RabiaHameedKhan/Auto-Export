@@ -269,7 +269,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1600px] px-4">
           <div className="grid gap-6 xl:grid-cols-[270px_minmax(0,1fr)_300px]">
             <InventorySidebar
-              className="space-y-5"
+              className="order-2 space-y-5 xl:order-1"
               stats={[
                 { href: "/search", label: "Total stock", value: sidebarData.stats.total },
                 { href: "/search?new=1", label: "New arrivals", value: sidebarData.stats.newArrival },
@@ -288,7 +288,7 @@ export default async function HomePage() {
               steeringHref={(item) => `/search?steering=${item.label}`}
             />
 
-            <main className="min-w-0">
+            <main className="order-1 min-w-0 xl:order-2">
               <section className="border border-[#d8dee9] bg-white">
                 <div className="border-b border-[#d8dee9] bg-[linear-gradient(90deg,#102a66_0%,#173574_55%,#2f5eb8_100%)] px-6 py-5 text-white">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -359,7 +359,7 @@ export default async function HomePage() {
               </section>
             </main>
 
-            <aside className="space-y-5">
+            <aside className="order-3 space-y-5">
               <HomeSidebarSection title="Featured Stock">
                 <div>
                   {(sidebarData.featuredVehicles.length

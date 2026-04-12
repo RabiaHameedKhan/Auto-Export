@@ -199,7 +199,7 @@ export async function VehicleListingSection({
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_300px]">
         <InventorySidebar
-          className="xl:sticky xl:top-24 xl:self-start"
+          className="order-2 xl:order-1 xl:sticky xl:top-24 xl:self-start"
           stats={[
             { href: buildVehicleSearchHref(filterState), label: "All stock", value: sidebar.stats.total },
             {
@@ -256,7 +256,7 @@ export async function VehicleListingSection({
           }
         />
 
-        <main className="min-w-0">
+        <main className="order-1 min-w-0 xl:order-2">
           <div className="mb-6 rounded-[1.75rem] border border-[#d7dfef] bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -296,7 +296,7 @@ export async function VehicleListingSection({
           )}
         </main>
 
-        <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+        <aside className="order-3 space-y-6 xl:sticky xl:top-24 xl:self-start">
           <SidebarPanel title="Featured Stock">
             <div className="space-y-3">
               {(sidebar.featuredVehicles.length ? sidebar.featuredVehicles : sidebar.latestVehicles).map(
