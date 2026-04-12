@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
 type Option = {
@@ -15,16 +15,21 @@ export type VehicleCreateState = {
 
 const initialState: VehicleCreateState = {};
 
-function SubmitButton() {
+type UploadedImage = {
+  url: string;
+  originalName?: string;
+};
+
+function SubmitButton({ blocked }: { blocked: boolean }) {
   const { pending } = useFormStatus();
 
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || blocked}
       className="rounded-lg bg-[#0c47a5] px-5 py-3 font-semibold text-white hover:bg-[#0a3d91] disabled:opacity-60"
     >
-      {pending ? "Saving..." : "Create vehicle"}
+      {pending ? "Saving..." : blocked ? "Upload images first" : "Create vehicle"}
     </button>
   );
 }
@@ -47,6 +52,10 @@ export function VehicleCreateForm({
   const [state, formAction] = useFormState(action, initialState);
   const [selectedMakeId, setSelectedMakeId] = useState<string>(initialMakeId);
   const [selectedModelId, setSelectedModelId] = useState<string>(initialModelId);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const filteredModels = useMemo(() => {
     const makeId = Number(selectedMakeId);
@@ -66,11 +75,73 @@ export function VehicleCreateForm({
     }
   }, [filteredModels, selectedModelId]);
 
+  useEffect(() => {
+    if (uploadedImages.length === 0) {
+      setPrimaryImageIndex(0);
+      return;
+    }
+
+    if (primaryImageIndex > uploadedImages.length - 1) {
+      setPrimaryImageIndex(0);
+    }
+  }, [primaryImageIndex, uploadedImages.length]);
+
+  const primaryImageUrl = uploadedImages[primaryImageIndex]?.url ?? "";
+  const additionalImageUrls = uploadedImages
+    .filter((_, index) => index !== primaryImageIndex)
+    .map((image) => image.url)
+    .join("\n");
+
+  async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    setIsUploadingImages(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      for (const file of files) {
+        formData.append("images", file);
+      }
+
+      const response = await fetch("/api/admin/uploads/vehicle-images", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = (await response.json()) as
+        | { files?: UploadedImage[]; error?: string }
+        | undefined;
+
+      if (!response.ok || !result?.files) {
+        throw new Error(result?.error || "Image upload failed.");
+      }
+
+      setUploadedImages((current) => [...current, ...result.files!]);
+      event.target.value = "";
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "Image upload failed.");
+    } finally {
+      setIsUploadingImages(false);
+    }
+  }
+
+  function removeUploadedImage(indexToRemove: number) {
+    setUploadedImages((current) => current.filter((_, index) => index !== indexToRemove));
+  }
+
   return (
     <form action={formAction} className="mt-8 space-y-8">
-      {state.error ? (
+      <input type="hidden" name="primaryImageUrl" value={primaryImageUrl} />
+      <input type="hidden" name="additionalImageUrls" value={additionalImageUrls} />
+
+      {state.error || uploadError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.error}
+          {state.error ?? uploadError}
         </div>
       ) : null}
 
@@ -185,12 +256,58 @@ export function VehicleCreateForm({
         <h2 className="text-lg font-semibold text-[#0a0a0a]">Media and features</h2>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <label className="text-sm font-medium text-[#374151]">
-            Primary image URL *
-            <input name="primaryImageUrl" type="url" required className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" placeholder="https://example.com/vehicle.jpg" />
+            Upload vehicle images *
+            <input
+              name="images"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+            <span className="mt-2 block text-xs text-[#6b7280]">
+              Upload one or more images. They are stored in Vercel Blob and the generated URLs are
+              saved in the database when you create the vehicle.
+            </span>
           </label>
           <label className="text-sm font-medium text-[#374151]">
-            Additional image URLs
-            <textarea name="additionalImageUrls" rows={6} className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" placeholder="One image URL per line" />
+            Uploaded images
+            <div className="mt-1 rounded-lg border border-[#dbe3f2] p-3">
+              {isUploadingImages ? (
+                <p className="text-sm text-[#0c47a5]">Uploading images...</p>
+              ) : uploadedImages.length > 0 ? (
+                <div className="space-y-3">
+                  {uploadedImages.map((image, index) => (
+                    <div
+                      key={`${image.url}-${index}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-[#e5e7eb] px-3 py-2"
+                    >
+                      <label className="flex min-w-0 items-center gap-3 text-sm text-[#374151]">
+                        <input
+                          type="radio"
+                          name="primaryImageSelection"
+                          checked={primaryImageIndex === index}
+                          onChange={() => setPrimaryImageIndex(index)}
+                        />
+                        <span className="truncate">
+                          {image.originalName || `Image ${index + 1}`}
+                          {primaryImageIndex === index ? " (primary)" : ""}
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => removeUploadedImage(index)}
+                        className="text-sm font-semibold text-red-600 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[#6b7280]">No images uploaded yet.</p>
+              )}
+            </div>
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Features
@@ -225,7 +342,7 @@ export function VehicleCreateForm({
         <a href="/admin/vehicles" className="text-sm font-semibold text-[#0c47a5] hover:underline">
           Back to vehicles
         </a>
-        <SubmitButton />
+        <SubmitButton blocked={isUploadingImages || uploadedImages.length === 0} />
       </div>
     </form>
   );

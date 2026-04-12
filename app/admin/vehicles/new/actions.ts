@@ -86,6 +86,10 @@ export async function createVehicleAction(
   });
 
   if (!parsed.success) {
+    const imageError = parsed.error.issues.some((issue) => issue.path.includes("primaryImageUrl"));
+    if (imageError) {
+      return { error: "Please upload at least one vehicle image before saving." };
+    }
     return { error: "Please complete the required vehicle fields correctly." };
   }
 
@@ -116,10 +120,8 @@ export async function createVehicleAction(
   const features = splitLines(data.featuresText ?? "")
     .filter((feature, index, arr) => arr.indexOf(feature) === index);
 
-  let vehicleId: number;
-
   try {
-    vehicleId = await db.transaction(async (tx) => {
+    await db.transaction(async (tx) => {
       const inserted = await tx
         .insert(vehicles)
         .values({
