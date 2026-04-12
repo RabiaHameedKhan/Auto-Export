@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
@@ -17,7 +18,9 @@ const initialState: VehicleCreateState = {};
 
 type UploadedImage = {
   url: string;
+  pathname?: string;
   originalName?: string;
+  size?: number;
 };
 
 function SubmitButton({ blocked }: { blocked: boolean }) {
@@ -32,6 +35,13 @@ function SubmitButton({ blocked }: { blocked: boolean }) {
       {pending ? "Saving..." : blocked ? "Upload images first" : "Create vehicle"}
     </button>
   );
+}
+
+function formatBytes(bytes?: number) {
+  if (!bytes || bytes <= 0) return "Unknown size";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function VehicleCreateForm({
@@ -91,6 +101,11 @@ export function VehicleCreateForm({
     .filter((_, index) => index !== primaryImageIndex)
     .map((image) => image.url)
     .join("\n");
+  const uploadedImageCount = uploadedImages.length;
+  const uploadSummary =
+    uploadedImageCount === 0
+      ? "No Blob images attached yet."
+      : `${uploadedImageCount} image${uploadedImageCount === 1 ? "" : "s"} uploaded to Vercel Blob. The primary URL and any additional URLs will be saved to the database when you create the vehicle.`;
 
   async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -113,12 +128,18 @@ export function VehicleCreateForm({
         body: formData,
       });
 
-      const result = (await response.json()) as
-        | { files?: UploadedImage[]; error?: string }
-        | undefined;
+      const contentType = response.headers.get("content-type") || "";
+      const result = contentType.includes("application/json")
+        ? ((await response.json()) as { files?: UploadedImage[]; error?: string } | undefined)
+        : undefined;
 
       if (!response.ok || !result?.files) {
-        throw new Error(result?.error || "Image upload failed.");
+        throw new Error(
+          result?.error ||
+            (response.status === 401
+              ? "Your admin session expired. Sign in again and retry the upload."
+              : "Image upload failed.")
+        );
       }
 
       setUploadedImages((current) => [...current, ...result.files!]);
@@ -266,8 +287,8 @@ export function VehicleCreateForm({
               className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
             />
             <span className="mt-2 block text-xs text-[#6b7280]">
-              Upload one or more images. They are stored in Vercel Blob and the generated URLs are
-              saved in the database when you create the vehicle.
+              Upload one or more images. Each file is stored in Vercel Blob first, then the Blob
+              URL returned by the server is saved in the database when you create the vehicle.
             </span>
           </label>
           <label className="text-sm font-medium text-[#374151]">
@@ -280,24 +301,41 @@ export function VehicleCreateForm({
                   {uploadedImages.map((image, index) => (
                     <div
                       key={`${image.url}-${index}`}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-[#e5e7eb] px-3 py-2"
+                      className="flex items-start justify-between gap-3 rounded-lg border border-[#e5e7eb] px-3 py-2"
                     >
-                      <label className="flex min-w-0 items-center gap-3 text-sm text-[#374151]">
+                      <label className="flex min-w-0 flex-1 items-start gap-3 text-sm text-[#374151]">
                         <input
                           type="radio"
                           name="primaryImageSelection"
                           checked={primaryImageIndex === index}
+                          className="mt-1"
                           onChange={() => setPrimaryImageIndex(index)}
                         />
-                        <span className="truncate">
-                          {image.originalName || `Image ${index + 1}`}
-                          {primaryImageIndex === index ? " (primary)" : ""}
+                        <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-md border border-[#dbe3f2] bg-[#f8fafc]">
+                          <Image
+                            src={image.url}
+                            alt={image.originalName || `Uploaded image ${index + 1}`}
+                            fill
+                            className="h-full w-full object-cover"
+                            sizes="80px"
+                          />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-medium">
+                            {image.originalName || `Image ${index + 1}`}
+                            {primaryImageIndex === index ? " (primary)" : ""}
+                          </span>
+                          <span className="mt-1 block text-xs text-[#6b7280]">
+                            Stored in Blob as `{image.pathname || "vehicle image"}`
+                          </span>
+                          <span className="block truncate text-xs text-[#0c47a5]">{image.url}</span>
+                          <span className="block text-xs text-[#6b7280]">{formatBytes(image.size)}</span>
                         </span>
                       </label>
                       <button
                         type="button"
                         onClick={() => removeUploadedImage(index)}
-                        className="text-sm font-semibold text-red-600 hover:underline"
+                        className="shrink-0 text-sm font-semibold text-red-600 hover:underline"
                       >
                         Remove
                       </button>
@@ -308,6 +346,12 @@ export function VehicleCreateForm({
                 <p className="text-sm text-[#6b7280]">No images uploaded yet.</p>
               )}
             </div>
+            <span className="mt-2 block text-xs text-[#6b7280]">{uploadSummary}</span>
+            {primaryImageUrl ? (
+              <span className="mt-1 block text-xs text-[#0c47a5]">
+                Primary DB image URL: {primaryImageUrl}
+              </span>
+            ) : null}
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Features

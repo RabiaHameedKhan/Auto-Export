@@ -57,9 +57,9 @@ export default async function NewVehiclePage() {
         <div>
           <h1 className="text-2xl font-bold">Add vehicle</h1>
           <p className="mt-2 max-w-3xl text-[#6b7280]">
-            Create a vehicle directly from the admin dashboard. Upload images to Vercel Blob, save
-            their generated URLs in the database, and active vehicles will appear on the website
-            automatically.
+            Create a vehicle directly from the admin dashboard. Images are uploaded to Vercel Blob
+            first, the returned Blob URLs are then written into the `vehicle_images` table when you
+            save the form, and active vehicles will appear on the website automatically.
           </p>
         </div>
         <Link href="/admin/vehicles" className="text-sm font-semibold text-[#0c47a5] hover:underline">
