@@ -7,9 +7,11 @@ import { z } from "zod";
 
 const schema = z.object({
   name: z.string().min(1, "Required"),
-  email: z.string().min(1, "Required").email("Enter a valid email address"),
-  phone: z.string().min(1, "Required"),
-  whatsappNumber: z.string().min(1, "Required"),
+  email: z.string().email("Enter a valid email address").optional().or(z.literal("")),
+  phone: z.string().optional(),
+  country: z.string().optional(),
+  destinationPort: z.string().optional(),
+  message: z.string().optional(),
   address: z.string().optional(),
 });
 
@@ -34,7 +36,9 @@ export function QuoteForm({
       name: "",
       email: "",
       phone: "",
-      whatsappNumber: "",
+      country: "",
+      destinationPort: "",
+      message: "",
       address: "",
     },
   });
@@ -53,6 +57,7 @@ export function QuoteForm({
       body: JSON.stringify({
         ...data,
         vehicleId: vehicleId ?? null,
+        email: data.email || undefined,
       }),
     });
 
@@ -84,25 +89,29 @@ export function QuoteForm({
           {errors.name ? <p className="mt-1 text-sm text-red-600">{errors.name.message}</p> : null}
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Email *</label>
+          <label className="block text-sm font-medium text-[#6b7280]">Email</label>
           <input type="email" className={fieldClassName} {...register("email")} />
           {errors.email ? <p className="mt-1 text-sm text-red-600">{errors.email.message}</p> : null}
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Phone *</label>
+          <label className="block text-sm font-medium text-[#6b7280]">Phone</label>
           <input className={fieldClassName} {...register("phone")} />
-          {errors.phone ? <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p> : null}
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Whatsapp Number *</label>
-          <input className={fieldClassName} {...register("whatsappNumber")} />
-          {errors.whatsappNumber ? (
-            <p className="mt-1 text-sm text-red-600">{errors.whatsappNumber.message}</p>
-          ) : null}
+          <label className="block text-sm font-medium text-[#6b7280]">Country</label>
+          <input className={fieldClassName} {...register("country")} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#6b7280]">Destination port</label>
+          <input className={fieldClassName} {...register("destinationPort")} />
         </div>
         <div>
           <label className="block text-sm font-medium text-[#6b7280]">Address</label>
           <textarea rows={4} className={fieldClassName} {...register("address")} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#6b7280]">Message</label>
+          <textarea rows={4} className={fieldClassName} {...register("message")} />
         </div>
 
         <div className="border-t border-[#e6edf7] pt-5">

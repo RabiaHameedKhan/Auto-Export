@@ -16,8 +16,8 @@ export function VehicleCard({ vehicle }: Props) {
   ].filter(Boolean);
 
   return (
-    <article className="group grid aspect-square grid-rows-[54%_46%] overflow-hidden rounded-xl border border-[#e0e0e0] bg-white shadow-sm transition-shadow hover:shadow-md">
-      <Link href={`/car/${vehicle.id}`} className="relative min-h-0 overflow-hidden bg-[#f5f5f5]">
+    <article className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[#e0e0e0] bg-white shadow-sm transition-shadow hover:shadow-md">
+      <Link href={`/car/${vehicle.id}`} className="relative aspect-[16/10] overflow-hidden bg-[#f5f5f5] sm:aspect-[4/3]">
         <Image
           src={img}
           alt={vehicle.title}
@@ -36,15 +36,15 @@ export function VehicleCard({ vehicle }: Props) {
           </span>
         ) : null}
       </Link>
-      <div className="grid min-h-0 grid-rows-[auto_auto_auto_1fr_auto] gap-2 p-3">
-        <Link href={`/car/${vehicle.id}`}>
-          <h3 className="line-clamp-2 text-sm font-semibold uppercase tracking-wide text-[#0a0a0a]">
+      <div className="flex min-h-0 flex-1 flex-col gap-2.5 p-3 sm:p-4">
+        <Link href={`/car/${vehicle.id}`} className="min-w-0">
+          <h3 className="line-clamp-2 text-base font-semibold uppercase tracking-wide text-[#0a0a0a] sm:text-sm">
             {vehicle.title}
           </h3>
         </Link>
-        <p className="text-base font-bold text-[#0c47a5]">{formatUsd(price)}</p>
+        <p className="text-xl font-bold text-[#0c47a5] sm:text-base">{formatUsd(price)}</p>
         {vehicle.mileage != null ? (
-          <p className="text-xs font-medium text-[#64748b]">
+          <p className="text-sm font-medium text-[#64748b] sm:text-xs">
             {vehicle.mileage.toLocaleString()} km
           </p>
         ) : (
@@ -52,14 +52,17 @@ export function VehicleCard({ vehicle }: Props) {
         )}
         <div className="flex flex-wrap content-start gap-1.5 overflow-hidden">
           {metaBadges.slice(0, 2).map((badge) => (
-            <span key={badge} className="rounded-full bg-[#f5f5f5] px-2 py-0.5 text-xs text-[#6b7280]">
+            <span
+              key={badge}
+              className="rounded-full bg-[#f5f5f5] px-2.5 py-1 text-xs text-[#6b7280]"
+            >
               {badge}
             </span>
           ))}
         </div>
         <Link
           href={`/car/${vehicle.id}#quote`}
-          className="inline-flex items-center justify-center rounded-lg bg-[#0c47a5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0a3d91]"
+          className="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-[#0c47a5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0a3d91]"
         >
           Get Quote
         </Link>

@@ -6,9 +6,11 @@ import { inquiries } from "@/lib/db/schema";
 const schema = z.object({
   vehicleId: z.number().int().optional().nullable(),
   name: z.string().min(1).max(255),
-  email: z.string().min(1).email().max(255),
-  phone: z.string().min(1).max(50),
-  whatsappNumber: z.string().min(1).max(50),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().max(50).optional(),
+  country: z.string().max(100).optional(),
+  destinationPort: z.string().max(100).optional(),
+  message: z.string().max(5000).optional(),
   address: z.string().max(5000).optional(),
 });
 
@@ -53,9 +55,11 @@ export async function POST(req: NextRequest) {
   await db.insert(inquiries).values({
     vehicleId: d.vehicleId ?? null,
     name: d.name,
-    email: d.email,
-    phone: d.phone,
-    whatsappNumber: d.whatsappNumber,
+    email: d.email || null,
+    phone: d.phone ?? null,
+    country: d.country ?? null,
+    destinationPort: d.destinationPort ?? null,
+    message: d.message ?? null,
     address: d.address ?? null,
     status: "new",
   });

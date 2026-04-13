@@ -251,27 +251,26 @@ async function main() {
     `);
 
     const sampleInquiries = [
-      ["John Smith", "john@example.com", "+1 555 0101", "United States", "Los Angeles", "new", "Interested in Hilux"],
-      ["Maria Garcia", "maria@example.com", "+34 600 000 000", "Spain", "Barcelona", "read", "Quote for Fortuner"],
+      ["John Smith", "john@example.com", "+1 555 0101", "+1 555 0101", "Los Angeles, California, USA", "new"],
+      ["Maria Garcia", "maria@example.com", "+34 600 000 000", "+34 600 000 000", "Barcelona, Spain", "read"],
     ];
-    for (const [name, email, phone, country, port, status, msg] of sampleInquiries) {
+    for (const [name, email, phone, whatsappNumber, address, status] of sampleInquiries) {
       await c.query(
-        `INSERT INTO inquiries (name, email, phone, country, destination_port, status, message, vehicle_id)
+        `INSERT INTO inquiries (name, email, phone, whatsapp_number, address, status, vehicle_id)
          SELECT
            $1::varchar,
            $2::varchar,
            $3::varchar,
            $4::varchar,
-           $5::varchar,
+           $5::text,
            $6::varchar,
-           $7::text,
            (SELECT id FROM vehicles WHERE stock_number = 'AE-1001' LIMIT 1)
          WHERE NOT EXISTS (
-           SELECT 1
-           FROM inquiries
-           WHERE email = $2::varchar AND message = $7::text
-         )`,
-        [name, email, phone, country, port, status, msg]
+            SELECT 1
+            FROM inquiries
+            WHERE email = $2::varchar AND phone = $3::varchar
+          )`,
+        [name, email, phone, whatsappNumber, address, status]
       );
     }
 
