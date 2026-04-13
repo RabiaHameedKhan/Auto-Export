@@ -70,8 +70,8 @@ export default async function CarDetailPage({
         <span className="text-[#0a0a0a]">{v.title}</span>
       </nav>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
-        <div>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,360px)] lg:items-start">
+        <div className="min-w-0">
           <VehicleImageGallery
             images={v.images.map((im) => ({ id: im.id, url: im.url }))}
             title={v.title}
@@ -153,7 +153,7 @@ export default async function CarDetailPage({
           </section>
         </div>
 
-        <aside className="hidden lg:block">
+        <aside className="hidden min-w-0 lg:block">
           <div className="sticky top-28">
             <QuoteForm vehicleId={v.id} whatsapp={whatsapp} />
           </div>

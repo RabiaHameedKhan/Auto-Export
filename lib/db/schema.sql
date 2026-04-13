@@ -69,9 +69,8 @@ CREATE TABLE IF NOT EXISTS inquiries (
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255),
   phone VARCHAR(50),
-  country VARCHAR(100),
-  destination_port VARCHAR(100),
-  message TEXT,
+  whatsapp_number VARCHAR(50),
+  address TEXT,
   status VARCHAR(30) DEFAULT 'new',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

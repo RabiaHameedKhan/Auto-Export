@@ -7,11 +7,10 @@ import { z } from "zod";
 
 const schema = z.object({
   name: z.string().min(1, "Required"),
-  email: z.string().email("Enter a valid email address").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  country: z.string().optional(),
-  destinationPort: z.string().optional(),
-  message: z.string().optional(),
+  email: z.string().min(1, "Required").email("Enter a valid email address"),
+  phone: z.string().min(1, "Required"),
+  whatsappNumber: z.string().min(1, "Required"),
+  address: z.string().optional(),
 });
 
 type Form = z.infer<typeof schema>;
@@ -35,9 +34,8 @@ export function QuoteForm({
       name: "",
       email: "",
       phone: "",
-      country: "",
-      destinationPort: "",
-      message: "",
+      whatsappNumber: "",
+      address: "",
     },
   });
 
@@ -55,7 +53,6 @@ export function QuoteForm({
       body: JSON.stringify({
         ...data,
         vehicleId: vehicleId ?? null,
-        email: data.email || undefined,
       }),
     });
 
@@ -71,7 +68,7 @@ export function QuoteForm({
     <form
       id="quote"
       onSubmit={handleSubmit(onSubmit)}
-      className="overflow-hidden rounded-2xl border border-[#dbe3f2] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] lg:flex lg:max-h-[calc(100vh-8rem)] lg:flex-col"
+      className="w-full max-w-full overflow-hidden rounded-2xl border border-[#dbe3f2] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] lg:flex lg:max-h-[calc(100vh-8rem)] lg:flex-col"
     >
       <div className="border-b border-[#e6edf7] bg-[linear-gradient(135deg,#f8fbff_0%,#eef4ff_100%)] px-6 py-5">
         <h3 className="text-lg font-semibold text-[#0a0a0a]">Get a quote</h3>
@@ -80,32 +77,32 @@ export function QuoteForm({
         </p>
       </div>
 
-      <div className="space-y-4 px-6 py-5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-4">
+      <div className="space-y-4 px-5 py-5 sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-4">
         <div>
           <label className="block text-sm font-medium text-[#6b7280]">Name *</label>
           <input className={fieldClassName} {...register("name")} />
           {errors.name ? <p className="mt-1 text-sm text-red-600">{errors.name.message}</p> : null}
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Email</label>
+          <label className="block text-sm font-medium text-[#6b7280]">Email *</label>
           <input type="email" className={fieldClassName} {...register("email")} />
           {errors.email ? <p className="mt-1 text-sm text-red-600">{errors.email.message}</p> : null}
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Phone</label>
+          <label className="block text-sm font-medium text-[#6b7280]">Phone *</label>
           <input className={fieldClassName} {...register("phone")} />
+          {errors.phone ? <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p> : null}
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Country</label>
-          <input className={fieldClassName} {...register("country")} />
+          <label className="block text-sm font-medium text-[#6b7280]">Whatsapp Number *</label>
+          <input className={fieldClassName} {...register("whatsappNumber")} />
+          {errors.whatsappNumber ? (
+            <p className="mt-1 text-sm text-red-600">{errors.whatsappNumber.message}</p>
+          ) : null}
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Destination port</label>
-          <input className={fieldClassName} {...register("destinationPort")} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-[#6b7280]">Message</label>
-          <textarea rows={4} className={fieldClassName} {...register("message")} />
+          <label className="block text-sm font-medium text-[#6b7280]">Address</label>
+          <textarea rows={4} className={fieldClassName} {...register("address")} />
         </div>
 
         <div className="border-t border-[#e6edf7] pt-5">

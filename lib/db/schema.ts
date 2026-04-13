@@ -85,9 +85,8 @@ export const inquiries = pgTable("inquiries", {
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }),
   phone: varchar("phone", { length: 50 }),
-  country: varchar("country", { length: 100 }),
-  destinationPort: varchar("destination_port", { length: 100 }),
-  message: text("message"),
+  whatsappNumber: varchar("whatsapp_number", { length: 50 }),
+  address: text("address"),
   status: varchar("status", { length: 30 }).default("new"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
