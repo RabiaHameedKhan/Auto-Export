@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +15,9 @@ type NavbarProps = {
   whatsapp?: string;
   topMakes?: SidebarFacetItem[];
   bodyTypes?: SidebarFacetItem[];
+  fuelTypes?: SidebarFacetItem[];
+  transmissions?: SidebarFacetItem[];
+  steering?: SidebarFacetItem[];
 };
 
 export function Navbar({
@@ -23,6 +26,9 @@ export function Navbar({
   whatsapp = SITE_CONTACT.whatsapp,
   topMakes = [],
   bodyTypes = [],
+  fuelTypes = [],
+  transmissions = [],
+  steering = [],
 }: NavbarProps) {
   const [open, setOpen] = useState<string | null>(null);
   const mega = [
@@ -147,6 +153,9 @@ export function Navbar({
           whatsapp={whatsapp}
           topMakes={topMakes}
           bodyTypes={bodyTypes}
+          fuelTypes={fuelTypes}
+          transmissions={transmissions}
+          steering={steering}
         />
       </nav>
     </header>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { priceFilterLinks, quickFilterLinks } from "@/lib/inventory-links";
+import { buildVehicleSearchHref } from "@/lib/listing-params";
 import type { SidebarFacetItem } from "@/lib/queries/vehicles";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,9 @@ type Props = {
   whatsapp: string;
   topMakes?: SidebarFacetItem[];
   bodyTypes?: SidebarFacetItem[];
+  fuelTypes?: SidebarFacetItem[];
+  transmissions?: SidebarFacetItem[];
+  steering?: SidebarFacetItem[];
 };
 
 export function MobileMenu({
@@ -20,6 +24,9 @@ export function MobileMenu({
   whatsapp,
   topMakes = [],
   bodyTypes = [],
+  fuelTypes = [],
+  transmissions = [],
+  steering = [],
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -45,7 +52,7 @@ export function MobileMenu({
       />
       <aside
         className={cn(
-          "fixed right-0 top-0 z-50 flex h-full w-[min(100%,320px)] flex-col bg-[#0c47a5] shadow-xl transition-transform duration-200 lg:hidden",
+          "fixed right-0 top-0 z-50 flex h-full w-[min(100%,340px)] flex-col bg-[#0c47a5] shadow-xl transition-transform duration-200 lg:hidden",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -57,7 +64,7 @@ export function MobileMenu({
             onClick={() => setOpen(false)}
             aria-label="Close menu"
           >
-            ✕
+            X
           </button>
         </div>
         <nav className="flex flex-col gap-1 overflow-y-auto p-4 text-sm">
@@ -79,6 +86,23 @@ export function MobileMenu({
           <Link href="/contact" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
             Contact
           </Link>
+
+          <div className="mt-4 rounded-2xl border border-white/15 bg-white/5 p-2">
+            <p className="px-3 pt-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+              Inventory Filters
+            </p>
+            <p className="px-3 pb-2 pt-1 text-xs text-white/65">
+              Sidebar filters are available here on smaller screens.
+            </p>
+            <Link
+              href="/search"
+              className="block rounded-lg px-3 py-2 font-medium hover:bg-white/10"
+              onClick={() => setOpen(false)}
+            >
+              View all stock
+            </Link>
+          </div>
+
           <div className="mt-4 border-t border-white/10 pt-4">
             <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
               By Make
@@ -94,6 +118,7 @@ export function MobileMenu({
               </Link>
             ))}
           </div>
+
           <div className="mt-2 border-t border-white/10 pt-4">
             <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
               By Body Type
@@ -109,6 +134,70 @@ export function MobileMenu({
               </Link>
             ))}
           </div>
+
+          {fuelTypes.length ? (
+            <div className="mt-2 border-t border-white/10 pt-4">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                Fuel Type
+              </p>
+              {fuelTypes.map((item) => (
+                <Link
+                  key={`mobile-fuel-${item.id}`}
+                  href={buildVehicleSearchHref({
+                    fuel: String(item.id) === "Unknown" ? undefined : String(item.id),
+                    page: 1,
+                  })}
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
+          {transmissions.length ? (
+            <div className="mt-2 border-t border-white/10 pt-4">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                Transmission
+              </p>
+              {transmissions.map((item) => (
+                <Link
+                  key={`mobile-transmission-${item.id}`}
+                  href={buildVehicleSearchHref({
+                    transmission: String(item.id) === "Unknown" ? undefined : String(item.id),
+                    page: 1,
+                  })}
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
+          {steering.length ? (
+            <div className="mt-2 border-t border-white/10 pt-4">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                Steering
+              </p>
+              {steering.map((item) => (
+                <Link
+                  key={`mobile-steering-${item.id}`}
+                  href={buildVehicleSearchHref({
+                    steering: String(item.id) === "Unknown" ? undefined : String(item.id),
+                    page: 1,
+                  })}
+                  className="block rounded-lg px-3 py-2 hover:bg-white/10"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
           <div className="mt-2 border-t border-white/10 pt-4">
             <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
               By Price
@@ -124,6 +213,7 @@ export function MobileMenu({
               </Link>
             ))}
           </div>
+
           <div className="mt-2 border-t border-white/10 pt-4">
             <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
               Quick Filters
@@ -139,6 +229,7 @@ export function MobileMenu({
               </Link>
             ))}
           </div>
+
           <a
             href={`tel:${phone.replace(/\s/g, "")}`}
             className="mt-4 rounded-lg bg-[#e6d53c] px-3 py-3 text-center font-semibold text-black"

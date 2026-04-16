@@ -18,6 +18,9 @@ export default async function PublicLayout({
   let settings: Record<string, string | null> = {};
   let inventoryNav: Awaited<ReturnType<typeof getVehicleSidebarData>>["makes"] = [];
   let inventoryBodyTypes: Awaited<ReturnType<typeof getVehicleSidebarData>>["bodyTypes"] = [];
+  let inventoryFuelTypes: Awaited<ReturnType<typeof getVehicleSidebarData>>["fuelTypes"] = [];
+  let inventoryTransmissions: Awaited<ReturnType<typeof getVehicleSidebarData>>["transmissions"] = [];
+  let inventorySteering: Awaited<ReturnType<typeof getVehicleSidebarData>>["steering"] = [];
   try {
     const raw = await getActiveAnnouncements();
     announcements = raw.map((a) => ({
@@ -35,6 +38,9 @@ export default async function PublicLayout({
     const sidebarData = await getVehicleSidebarData({}, { page: 1 });
     inventoryNav = sidebarData.makes;
     inventoryBodyTypes = sidebarData.bodyTypes;
+    inventoryFuelTypes = sidebarData.fuelTypes;
+    inventoryTransmissions = sidebarData.transmissions;
+    inventorySteering = sidebarData.steering;
   } catch {
     /* DB not configured */
   }
@@ -54,6 +60,9 @@ export default async function PublicLayout({
         whatsapp={whatsapp}
         topMakes={inventoryNav}
         bodyTypes={inventoryBodyTypes}
+        fuelTypes={inventoryFuelTypes}
+        transmissions={inventoryTransmissions}
+        steering={inventorySteering}
       />
       <AnnouncementBanner items={announcements} />
       <main className="min-h-[60vh]">{children}</main>
