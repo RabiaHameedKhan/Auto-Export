@@ -51,6 +51,41 @@ function splitLines(value: string) {
     .filter(Boolean);
 }
 
+function getPgError(error: unknown): { code?: string; detail?: string; constraint?: string } {
+  if (!error || typeof error !== "object") return {};
+
+  const candidate = error as {
+    code?: string;
+    detail?: string;
+    constraint?: string;
+    cause?: unknown;
+  };
+
+  if (candidate.code || candidate.detail || candidate.constraint) {
+    return {
+      code: candidate.code,
+      detail: candidate.detail,
+      constraint: candidate.constraint,
+    };
+  }
+
+  if (candidate.cause && typeof candidate.cause === "object") {
+    const cause = candidate.cause as {
+      code?: string;
+      detail?: string;
+      constraint?: string;
+    };
+
+    return {
+      code: cause.code,
+      detail: cause.detail,
+      constraint: cause.constraint,
+    };
+  }
+
+  return {};
+}
+
 export async function createVehicleAction(
   _prevState: VehicleCreateState,
   formData: FormData
@@ -115,6 +150,18 @@ export async function createVehicleAction(
     return { error: "Selected body type was not found." };
   }
 
+  if (data.stockNumber) {
+    const [existingStock] = await db
+      .select({ id: vehicles.id })
+      .from(vehicles)
+      .where(eq(vehicles.stockNumber, data.stockNumber))
+      .limit(1);
+
+    if (existingStock) {
+      return { error: `Stock number "${data.stockNumber}" already exists. Please use a unique stock number.` };
+    }
+  }
+
   const imageUrls = [data.primaryImageUrl, ...splitLines(data.additionalImageUrls ?? "")]
     .filter((url, index, arr) => arr.indexOf(url) === index);
   const features = splitLines(data.featuresText ?? "")
@@ -177,21 +224,17 @@ export async function createVehicleAction(
       return newVehicleId;
     });
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "23505"
-    ) {
-      return { error: "This stock number already exists. Please use a unique stock number." };
+    const pgError = getPgError(error);
+
+    if (pgError.code === "23505") {
+      return {
+        error:
+          pgError.detail ??
+          "This stock number already exists. Please use a unique stock number.",
+      };
     }
 
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "23503"
-    ) {
+    if (pgError.code === "23503") {
       return { error: "One of the selected related records no longer exists. Please refresh and try again." };
     }
 
