@@ -177,6 +177,24 @@ export async function createVehicleAction(
       return newVehicleId;
     });
   } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "23505"
+    ) {
+      return { error: "This stock number already exists. Please use a unique stock number." };
+    }
+
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "23503"
+    ) {
+      return { error: "One of the selected related records no longer exists. Please refresh and try again." };
+    }
+
     const message = error instanceof Error ? error.message : "Vehicle could not be saved.";
     return { error: message };
   }

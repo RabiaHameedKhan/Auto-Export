@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { db } from "@/lib/db";
 import { inquiries } from "@/lib/db/schema";
-
-const schema = z.object({
-  vehicleId: z.number().int().optional().nullable(),
-  name: z.string().min(1).max(255),
-  email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().max(50).optional(),
-  country: z.string().max(100).optional(),
-  destinationPort: z.string().max(100).optional(),
-  message: z.string().max(5000).optional(),
-  address: z.string().max(5000).optional(),
-});
+import { inquirySchema } from "@/lib/validation/inquiry";
 
 const rate = new Map<string, { n: number; t: number }>();
 
@@ -42,7 +31,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = schema.safeParse(body);
+  const parsed = inquirySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }

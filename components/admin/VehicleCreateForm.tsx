@@ -104,8 +104,8 @@ export function VehicleCreateForm({
   const uploadedImageCount = uploadedImages.length;
   const uploadSummary =
     uploadedImageCount === 0
-      ? "No Blob images attached yet."
-      : `${uploadedImageCount} image${uploadedImageCount === 1 ? "" : "s"} uploaded to Vercel Blob. The primary URL and any additional URLs will be saved to the database when you create the vehicle.`;
+      ? "No Cloudinary images attached yet."
+      : `${uploadedImageCount} image${uploadedImageCount === 1 ? "" : "s"} uploaded to Cloudinary. The primary URL and any additional URLs will be saved to the database when you create the vehicle.`;
 
   async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -287,8 +287,8 @@ export function VehicleCreateForm({
               className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
             />
             <span className="mt-2 block text-xs text-[#6b7280]">
-              Upload one or more images. Each file is stored in Vercel Blob first, then the Blob
-              URL returned by the server is saved in the database when you create the vehicle.
+              Upload one or more images. Each file is stored in Cloudinary first, then the
+              returned image URL is saved in the database when you create the vehicle.
             </span>
           </label>
           <label className="text-sm font-medium text-[#374151]">
@@ -326,7 +326,7 @@ export function VehicleCreateForm({
                             {primaryImageIndex === index ? " (primary)" : ""}
                           </span>
                           <span className="mt-1 block text-xs text-[#6b7280]">
-                            Stored in Blob as `{image.pathname || "vehicle image"}`
+                            Stored in Cloudinary as `{image.pathname || "vehicle image"}`
                           </span>
                           <span className="block truncate text-xs text-[#0c47a5]">{image.url}</span>
                           <span className="block text-xs text-[#6b7280]">{formatBytes(image.size)}</span>

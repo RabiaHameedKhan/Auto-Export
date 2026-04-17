@@ -1,7 +1,7 @@
-import { put } from "@vercel/blob";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import { cloudinary } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 
@@ -15,6 +15,36 @@ function sanitizeFileName(name: string) {
     .replace(/^-|-$/g, "");
 }
 
+function uploadBuffer(buffer: Buffer, publicId: string) {
+  return new Promise<{
+    secure_url: string;
+    public_id: string;
+    bytes: number;
+  }>((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "vehicles",
+        public_id: publicId,
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error || !result) {
+          reject(error ?? new Error("Image upload failed."));
+          return;
+        }
+
+        resolve({
+          secure_url: result.secure_url,
+          public_id: result.public_id,
+          bytes: result.bytes,
+        });
+      }
+    );
+
+    stream.end(buffer);
+  });
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
@@ -22,9 +52,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (
+    !process.env.CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET
+  ) {
     return NextResponse.json(
-      { error: "Vercel Blob is not configured. Add BLOB_READ_WRITE_TOKEN." },
+      {
+        error:
+          "Cloudinary is not configured. Add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.",
+      },
       { status: 500 }
     );
   }
@@ -57,19 +94,17 @@ export async function POST(request: Request) {
   try {
     const uploads = await Promise.all(
       files.map(async (file, index) => {
-        const safeName = sanitizeFileName(file.name || `image-${index + 1}.jpg`) || `image-${index + 1}.jpg`;
-        const pathname = `vehicles/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-        const blob = await put(pathname, file, {
-          access: "public",
-          contentType: file.type || "application/octet-stream",
-          addRandomSuffix: false,
-        });
+        const safeName =
+          sanitizeFileName(file.name || `image-${index + 1}.jpg`) || `image-${index + 1}.jpg`;
+        const publicId = `${Date.now()}-${crypto.randomUUID()}-${safeName.replace(/\.[^.]+$/, "")}`;
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const uploaded = await uploadBuffer(buffer, publicId);
 
         return {
-          url: blob.url,
-          pathname: blob.pathname,
+          url: uploaded.secure_url,
+          pathname: uploaded.public_id,
           originalName: file.name,
-          size: file.size,
+          size: uploaded.bytes,
         };
       })
     );
