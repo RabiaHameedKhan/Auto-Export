@@ -36,22 +36,24 @@ const inquiryFields = {
   address: z.string().trim().min(5, "Enter your address").max(5000, "Address is too long"),
 };
 
-const withContactMethod = <
-  T extends z.ZodRawShape & {
-    email: z.ZodTypeAny;
-    phone: z.ZodTypeAny;
-  },
->(
-  schema: z.ZodObject<T>
-) =>
-  schema.refine((data) => Boolean(data.email || data.phone), {
+export const inquirySchemaBase = z.object(inquiryFields);
+export const quoteFormSchemaBase = inquirySchemaBase.omit({ vehicleId: true });
+
+export const quoteFormSchema = quoteFormSchemaBase.refine(
+  (data) => Boolean(data.email || data.phone),
+  {
     message: "Enter your email or phone number",
     path: ["email"],
-  });
+  }
+);
 
-export const inquirySchemaBase = z.object(inquiryFields);
-export const quoteFormSchema = withContactMethod(inquirySchemaBase.omit({ vehicleId: true }));
-export const inquirySchema = withContactMethod(inquirySchemaBase);
+export const inquirySchema = inquirySchemaBase.refine(
+  (data) => Boolean(data.email || data.phone),
+  {
+    message: "Enter your email or phone number",
+    path: ["email"],
+  }
+);
 
 export type InquiryFormData = z.infer<typeof inquirySchema>;
 export type QuoteFormData = z.infer<typeof quoteFormSchema>;
