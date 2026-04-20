@@ -21,9 +21,35 @@ type UploadedImage = {
   pathname?: string;
   originalName?: string;
   size?: number;
+  isPrimary?: boolean;
 };
 
-function SubmitButton({ blocked }: { blocked: boolean }) {
+export type VehicleFormInitialValues = {
+  stockNumber?: string | null;
+  title?: string;
+  makeId?: number | null;
+  modelId?: number | null;
+  bodyTypeId?: number | null;
+  year?: number | null;
+  month?: number | null;
+  price?: string | number | null;
+  mileage?: number | null;
+  fuelType?: string | null;
+  transmission?: string | null;
+  steering?: string | null;
+  engineCc?: number | null;
+  color?: string | null;
+  driveType?: string | null;
+  vehicleCondition?: "used" | "brand_new" | null;
+  description?: string | null;
+  featuresText?: string;
+  isFeatured?: boolean | null;
+  isActive?: boolean | null;
+  isClearance?: boolean | null;
+  images?: UploadedImage[];
+};
+
+function SubmitButton({ blocked, mode }: { blocked: boolean; mode: "create" | "edit" }) {
   const { pending } = useFormStatus();
 
   return (
@@ -32,7 +58,7 @@ function SubmitButton({ blocked }: { blocked: boolean }) {
       disabled={pending || blocked}
       className="rounded-lg bg-[#0c47a5] px-5 py-3 font-semibold text-white hover:bg-[#0a3d91] disabled:opacity-60"
     >
-      {pending ? "Saving..." : blocked ? "Upload images first" : "Create vehicle"}
+      {pending ? "Saving..." : blocked ? "Select at least one image" : mode === "edit" ? "Update vehicle" : "Create vehicle"}
     </button>
   );
 }
@@ -49,21 +75,30 @@ export function VehicleCreateForm({
   makes,
   models,
   bodyTypes,
+  initialValues,
+  mode = "create",
 }: {
   action: (state: VehicleCreateState, formData: FormData) => Promise<VehicleCreateState>;
   makes: Option[];
   models: Option[];
   bodyTypes: Option[];
+  initialValues?: VehicleFormInitialValues;
+  mode?: "create" | "edit";
 }) {
-  const initialMakeId = String(makes[0]?.id ?? "");
+  const initialMakeId = String(initialValues?.makeId ?? makes[0]?.id ?? "");
   const initialModelId = String(
-    models.find((model) => model.makeId === makes[0]?.id)?.id ?? ""
+    initialValues?.modelId ??
+      models.find((model) => model.makeId === Number(initialMakeId))?.id ??
+      ""
   );
   const [state, formAction] = useFormState(action, initialState);
   const [selectedMakeId, setSelectedMakeId] = useState<string>(initialMakeId);
   const [selectedModelId, setSelectedModelId] = useState<string>(initialModelId);
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>(initialValues?.images ?? []);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(() => {
+    const foundIndex = (initialValues?.images ?? []).findIndex((image) => image.isPrimary);
+    return foundIndex >= 0 ? foundIndex : 0;
+  });
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -105,7 +140,7 @@ export function VehicleCreateForm({
   const uploadSummary =
     uploadedImageCount === 0
       ? "No Cloudinary images attached yet."
-      : `${uploadedImageCount} image${uploadedImageCount === 1 ? "" : "s"} uploaded to Cloudinary. The primary URL and any additional URLs will be saved to the database when you create the vehicle.`;
+      : `${uploadedImageCount} image${uploadedImageCount === 1 ? "" : "s"} ready. The selected primary image and the rest will be saved to the database when you ${mode === "edit" ? "update" : "create"} the vehicle.`;
 
   async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -171,11 +206,20 @@ export function VehicleCreateForm({
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <label className="text-sm font-medium text-[#374151]">
             Stock number
-            <input name="stockNumber" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="stockNumber"
+              defaultValue={initialValues?.stockNumber ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151] md:col-span-2 xl:col-span-2">
             Title *
-            <input name="title" required className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="title"
+              required
+              defaultValue={initialValues?.title ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Make *
@@ -209,7 +253,11 @@ export function VehicleCreateForm({
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Body type *
-            <select name="bodyTypeId" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5">
+            <select
+              name="bodyTypeId"
+              defaultValue={String(initialValues?.bodyTypeId ?? bodyTypes[0]?.id ?? "")}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            >
               {bodyTypes.map((bodyType) => (
                 <option key={bodyType.id} value={bodyType.id}>
                   {bodyType.name}
@@ -219,23 +267,56 @@ export function VehicleCreateForm({
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Year *
-            <input name="year" type="number" min="1990" max="2035" required className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="year"
+              type="number"
+              min="1990"
+              max="2035"
+              required
+              defaultValue={initialValues?.year ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Month
-            <input name="month" type="number" min="1" max="12" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="month"
+              type="number"
+              min="1"
+              max="12"
+              defaultValue={initialValues?.month ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Price (USD) *
-            <input name="price" type="number" min="0" step="0.01" required className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+              defaultValue={initialValues?.price ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Mileage (km)
-            <input name="mileage" type="number" min="0" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="mileage"
+              type="number"
+              min="0"
+              defaultValue={initialValues?.mileage ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Condition
-            <select name="vehicleCondition" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" defaultValue="used">
+            <select
+              name="vehicleCondition"
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+              defaultValue={initialValues?.vehicleCondition ?? "used"}
+            >
               <option value="used">Used</option>
               <option value="brand_new">Brand new</option>
             </select>
@@ -248,27 +329,53 @@ export function VehicleCreateForm({
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <label className="text-sm font-medium text-[#374151]">
             Fuel type
-            <input name="fuelType" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="fuelType"
+              defaultValue={initialValues?.fuelType ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Transmission
-            <input name="transmission" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="transmission"
+              defaultValue={initialValues?.transmission ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Steering
-            <input name="steering" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="steering"
+              defaultValue={initialValues?.steering ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Engine CC
-            <input name="engineCc" type="number" min="0" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="engineCc"
+              type="number"
+              min="0"
+              defaultValue={initialValues?.engineCc ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Color
-            <input name="color" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="color"
+              defaultValue={initialValues?.color ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Drive type
-            <input name="driveType" className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" />
+            <input
+              name="driveType"
+              defaultValue={initialValues?.driveType ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
           </label>
         </div>
       </section>
@@ -287,8 +394,8 @@ export function VehicleCreateForm({
               className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
             />
             <span className="mt-2 block text-xs text-[#6b7280]">
-              Upload one or more images. Each file is stored in Cloudinary first, then the
-              returned image URL is saved in the database when you create the vehicle.
+              Upload one or more images. You can keep existing images, remove any image, or upload
+              replacements. One image must remain selected as primary before saving.
             </span>
           </label>
           <label className="text-sm font-medium text-[#374151]">
@@ -355,11 +462,23 @@ export function VehicleCreateForm({
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Features
-            <textarea name="featuresText" rows={6} className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" placeholder="One feature per line" />
+            <textarea
+              name="featuresText"
+              rows={6}
+              defaultValue={initialValues?.featuresText ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+              placeholder="One feature per line"
+            />
           </label>
           <label className="text-sm font-medium text-[#374151]">
             Description
-            <textarea name="description" rows={6} className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5" placeholder="Vehicle description or HTML" />
+            <textarea
+              name="description"
+              rows={6}
+              defaultValue={initialValues?.description ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+              placeholder="Vehicle description or HTML"
+            />
           </label>
         </div>
       </section>
@@ -368,15 +487,30 @@ export function VehicleCreateForm({
         <h2 className="text-lg font-semibold text-[#0a0a0a]">Visibility</h2>
         <div className="mt-6 flex flex-wrap gap-6 text-sm font-medium text-[#374151]">
           <label className="inline-flex items-center gap-2">
-            <input type="checkbox" name="isActive" defaultChecked className="h-4 w-4 rounded border-[#c7d6ef]" />
+            <input
+              type="checkbox"
+              name="isActive"
+              defaultChecked={initialValues?.isActive ?? true}
+              className="h-4 w-4 rounded border-[#c7d6ef]"
+            />
             Active on website
           </label>
           <label className="inline-flex items-center gap-2">
-            <input type="checkbox" name="isFeatured" className="h-4 w-4 rounded border-[#c7d6ef]" />
+            <input
+              type="checkbox"
+              name="isFeatured"
+              defaultChecked={initialValues?.isFeatured ?? false}
+              className="h-4 w-4 rounded border-[#c7d6ef]"
+            />
             Featured vehicle
           </label>
           <label className="inline-flex items-center gap-2">
-            <input type="checkbox" name="isClearance" className="h-4 w-4 rounded border-[#c7d6ef]" />
+            <input
+              type="checkbox"
+              name="isClearance"
+              defaultChecked={initialValues?.isClearance ?? false}
+              className="h-4 w-4 rounded border-[#c7d6ef]"
+            />
             Clearance listing
           </label>
         </div>
@@ -386,7 +520,7 @@ export function VehicleCreateForm({
         <a href="/admin/vehicles" className="text-sm font-semibold text-[#0c47a5] hover:underline">
           Back to vehicles
         </a>
-        <SubmitButton blocked={isUploadingImages || uploadedImages.length === 0} />
+        <SubmitButton blocked={isUploadingImages || uploadedImages.length === 0} mode={mode} />
       </div>
     </form>
   );
