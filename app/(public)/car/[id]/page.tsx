@@ -12,6 +12,13 @@ import { SITE_CONTACT } from "@/lib/site-contact";
 
 export const revalidate = 300;
 
+function formatYearMonth(year?: number | null, month?: number | null) {
+  if (!year && !month) return null;
+  if (month && year) return `${month}/${year}`;
+  if (year) return String(year);
+  return month ? String(month) : null;
+}
+
 export default async function CarDetailPage({
   params,
 }: {
@@ -39,21 +46,31 @@ export default async function CarDetailPage({
   }
 
   const price = parseFloat(String(v.price));
+  const manufactureDate = formatYearMonth(v.manufactureYear, v.manufactureMonth);
+  const registrationDate = formatYearMonth(v.year, v.month);
 
   const specRows = [
+    { label: "Stock ID", value: v.stockNumber },
+    { label: "Location", value: v.location },
     { label: "Make", value: v.makeName },
     { label: "Model", value: v.modelName },
-    { label: "Year", value: v.year },
-    { label: "Month", value: v.month },
     { label: "Body type", value: v.bodyTypeName },
-    { label: "Drive", value: v.driveType },
+    { label: "Fuel", value: v.fuelType },
     { label: "Transmission", value: v.transmission },
     { label: "Steering", value: v.steering },
-    { label: "Fuel", value: v.fuelType },
-    { label: "Engine CC", value: v.engineCc },
-    { label: "Color", value: v.color },
+    { label: "Weight", value: v.weight },
+    { label: "Model code", value: v.modelCode },
+    { label: "Version class", value: v.versionClass },
+    { label: "Engine code", value: v.engineCode },
     { label: "Mileage (km)", value: v.mileage },
-    { label: "Stock no.", value: v.stockNumber },
+    { label: "Engine size", value: v.engineCc != null ? `${v.engineCc} cc` : null },
+    { label: "Ext color", value: v.color },
+    { label: "Manufacture year/month", value: manufactureDate },
+    { label: "Registration year/month", value: registrationDate },
+    { label: "Wheel drive", value: v.driveType },
+    { label: "Chassis no.", value: v.chassisNo },
+    { label: "Dimension", value: v.dimension },
+    { label: "Doors", value: v.doors },
   ];
 
   return (
@@ -78,10 +95,15 @@ export default async function CarDetailPage({
           />
           <div className="mt-8 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-[#6b7280]">Stock #{v.stockNumber ?? "â€”"}</p>
+              <p className="text-sm text-[#6b7280]">Stock #{v.stockNumber ?? "—"}</p>
               <h1 className="text-2xl font-bold uppercase tracking-wide text-[#0a0a0a] md:text-3xl">
                 {v.title}
               </h1>
+              {v.location ? (
+                <p className="mt-1 text-sm font-medium uppercase tracking-[0.16em] text-[#6b7280]">
+                  Location {v.location}
+                </p>
+              ) : null}
               <div className="mt-2 flex flex-wrap gap-2">
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -143,7 +165,7 @@ export default async function CarDetailPage({
               href="/how-to-buy"
               className="mt-4 inline-block text-sm font-semibold text-[#0c47a5] hover:underline"
             >
-              Full guide â†’
+              Full guide →
             </Link>
           </section>
 

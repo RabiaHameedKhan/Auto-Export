@@ -26,18 +26,28 @@ type UploadedImage = {
 
 export type VehicleFormInitialValues = {
   stockNumber?: string | null;
+  location?: string | null;
   title?: string;
   makeId?: number | null;
   modelId?: number | null;
   bodyTypeId?: number | null;
   year?: number | null;
   month?: number | null;
+  manufactureYear?: number | null;
+  manufactureMonth?: number | null;
   price?: string | number | null;
   mileage?: number | null;
+  doors?: number | null;
   fuelType?: string | null;
   transmission?: string | null;
   steering?: string | null;
   engineCc?: number | null;
+  weight?: string | null;
+  modelCode?: string | null;
+  versionClass?: string | null;
+  engineCode?: string | null;
+  chassisNo?: string | null;
+  dimension?: string | null;
   color?: string | null;
   driveType?: string | null;
   vehicleCondition?: "used" | "brand_new" | null;
@@ -212,6 +222,15 @@ export function VehicleCreateForm({
               className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
             />
           </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Location
+            <input
+              name="location"
+              defaultValue={initialValues?.location ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+              placeholder="e.g. Thailand"
+            />
+          </label>
           <label className="text-sm font-medium text-[#374151] md:col-span-2 xl:col-span-2">
             Title *
             <input
@@ -266,7 +285,7 @@ export function VehicleCreateForm({
             </select>
           </label>
           <label className="text-sm font-medium text-[#374151]">
-            Year *
+            Registration year *
             <input
               name="year"
               type="number"
@@ -278,13 +297,35 @@ export function VehicleCreateForm({
             />
           </label>
           <label className="text-sm font-medium text-[#374151]">
-            Month
+            Registration month
             <input
               name="month"
               type="number"
               min="1"
               max="12"
               defaultValue={initialValues?.month ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Manufacture year
+            <input
+              name="manufactureYear"
+              type="number"
+              min="1900"
+              max="2035"
+              defaultValue={initialValues?.manufactureYear ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Manufacture month
+            <input
+              name="manufactureMonth"
+              type="number"
+              min="1"
+              max="12"
+              defaultValue={initialValues?.manufactureMonth ?? ""}
               className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
             />
           </label>
@@ -307,6 +348,16 @@ export function VehicleCreateForm({
               type="number"
               min="0"
               defaultValue={initialValues?.mileage ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Doors
+            <input
+              name="doors"
+              type="number"
+              min="0"
+              defaultValue={initialValues?.doors ?? ""}
               className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
             />
           </label>
@@ -362,6 +413,39 @@ export function VehicleCreateForm({
             />
           </label>
           <label className="text-sm font-medium text-[#374151]">
+            Engine code
+            <input
+              name="engineCode"
+              defaultValue={initialValues?.engineCode ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Weight
+            <input
+              name="weight"
+              defaultValue={initialValues?.weight ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+              placeholder="e.g. 1800 kg"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Model code
+            <input
+              name="modelCode"
+              defaultValue={initialValues?.modelCode ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Version class
+            <input
+              name="versionClass"
+              defaultValue={initialValues?.versionClass ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
             Color
             <input
               name="color"
@@ -370,11 +454,28 @@ export function VehicleCreateForm({
             />
           </label>
           <label className="text-sm font-medium text-[#374151]">
-            Drive type
+            Wheel drive
             <input
               name="driveType"
               defaultValue={initialValues?.driveType ?? ""}
               className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151]">
+            Chassis no.
+            <input
+              name="chassisNo"
+              defaultValue={initialValues?.chassisNo ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+            />
+          </label>
+          <label className="text-sm font-medium text-[#374151] xl:col-span-2">
+            Dimension
+            <input
+              name="dimension"
+              defaultValue={initialValues?.dimension ?? ""}
+              className="mt-1 w-full rounded-lg border border-[#dbe3f2] px-3 py-2.5"
+              placeholder="e.g. 4690 x 1860 x 1730 mm"
             />
           </label>
         </div>

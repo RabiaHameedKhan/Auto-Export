@@ -263,8 +263,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroBanner imageUrl={heroImage} />
-
       <section className="bg-[#eef1f6] py-8 sm:py-10">
         <div className="mx-auto max-w-[1600px] px-4">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[250px_minmax(0,1fr)_300px]">
@@ -423,6 +421,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <HeroBanner imageUrl={heroImage} />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:py-14">
         <div className="overflow-hidden rounded-[1.75rem] border border-[#d9e0ef] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:rounded-[2rem]">
