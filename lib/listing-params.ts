@@ -26,6 +26,7 @@ export function parseVehicleSearchParams(
     : undefined;
 
   return {
+    stockNumber: first(sp.stock) ?? null,
     makeId: num(first(sp.make_id)),
     modelId: num(first(sp.model_id)),
     bodyTypeId: num(first(sp.body_type)),
@@ -57,6 +58,7 @@ export function parseVehicleSearchParams(
 export function buildVehicleSearchQuery(params: VehicleSearchParams): string {
   const sp = new URLSearchParams();
 
+  if (params.stockNumber?.trim()) sp.set("stock", params.stockNumber.trim());
   if (params.makeId != null) sp.set("make_id", String(params.makeId));
   if (params.modelId != null) sp.set("model_id", String(params.modelId));
   if (params.bodyTypeId != null) sp.set("body_type", String(params.bodyTypeId));

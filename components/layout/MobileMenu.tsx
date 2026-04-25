@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { priceFilterLinks, quickFilterLinks } from "@/lib/inventory-links";
@@ -57,7 +58,23 @@ export function MobileMenu({
         )}
       >
         <div className="flex items-center justify-between border-b border-white/10 p-4">
-          <span className="font-semibold">{companyName}</span>
+          <Link
+            href="/"
+            className="flex items-center"
+            onClick={() => setOpen(false)}
+            aria-label={`${companyName} home`}
+          >
+            <span className="flex h-12 w-[180px] items-center justify-center rounded-2xl bg-white px-3 py-2 shadow-lg ring-1 ring-black/10">
+              <Image
+                src="/logo.png"
+                alt={`${companyName} logo`}
+                width={180}
+                height={42}
+                className="h-full w-full object-contain"
+                priority
+              />
+            </span>
+          </Link>
           <button
             type="button"
             className="rounded p-2 hover:bg-white/10"
@@ -68,6 +85,27 @@ export function MobileMenu({
           </button>
         </div>
         <nav className="flex flex-col gap-1 overflow-y-auto p-4 text-sm">
+          <form action="/search" method="get" className="mb-3 rounded-2xl border border-white/15 bg-white/8 p-3">
+            <label htmlFor="mobile-stock-search" className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-white/72">
+              Search by Stock ID
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="mobile-stock-search"
+                type="text"
+                name="stock"
+                placeholder="Enter stock ID"
+                className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/12 px-3 py-3 text-sm text-white placeholder:text-white/58 outline-none focus:border-white/40"
+              />
+              <button
+                type="submit"
+                className="rounded-xl bg-white px-4 py-3 font-semibold text-[#0c47a5]"
+                onClick={() => setOpen(false)}
+              >
+                Go
+              </button>
+            </div>
+          </form>
           <Link href="/search" className="rounded-lg px-3 py-2 hover:bg-white/10" onClick={() => setOpen(false)}>
             Used Cars
           </Link>

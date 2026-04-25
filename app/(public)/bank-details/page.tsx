@@ -13,6 +13,16 @@ export default async function BankDetailsPage() {
     security = null;
   }
 
+  const transferDetails = [
+    ["Account Type", "US$ Dollar"],
+    ["Account Title", "9 Yard Trading Company Limited"],
+    ["Bank Name", "KRUNG THAI BANK PUBLIC COMPANY LIMITED"],
+    ["Address", "596 Sukhumvit 63, Khlong, Wattana, Bangkok 10110"],
+    ["Account No", "899000000852"],
+    ["Swift Code No", "KRTHTHBK"],
+    ["Branch Name", "Ekkamai Branch"],
+  ];
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-14">
       <h1 className="text-3xl font-bold text-[#0a0a0a]">Bank details</h1>
@@ -26,10 +36,25 @@ export default async function BankDetailsPage() {
           dangerouslySetInnerHTML={{ __html: content }}
         />
       ) : (
-        <div className="mt-10 rounded-xl border border-[#e0e0e0] bg-[#f5f5f5] p-8">
-          <p className="text-[#6b7280]">
-            Bank payment instructions will appear here once configured in Admin → Settings.
-          </p>
+        <div className="mt-10 overflow-hidden rounded-[1.5rem] border border-[#0c47a5]/20 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+          <div className="bg-[linear-gradient(90deg,#0b2b66_0%,#0c47a5_55%,#1670d8_100%)] px-6 py-4">
+            <h2 className="text-right text-xl font-bold uppercase tracking-[0.12em] text-white">
+              Transfer Details
+            </h2>
+          </div>
+          <div className="grid gap-0">
+            {transferDetails.map(([label, value], index) => (
+              <div
+                key={label}
+                className={`grid gap-2 border-t border-[#d7dfef] px-6 py-4 sm:grid-cols-[190px_minmax(0,1fr)] sm:gap-4 ${
+                  index === 0 ? "border-t-0" : ""
+                }`}
+              >
+                <p className="text-lg font-bold text-[#111827]">{label}:</p>
+                <p className="text-lg font-semibold leading-8 text-[#111827]">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

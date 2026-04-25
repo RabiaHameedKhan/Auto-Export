@@ -78,6 +78,26 @@ function normalizeSidebarParams(params: VehicleSearchParams): VehicleSearchParam
   };
 }
 
+function SearchHiddenFields({
+  params,
+}: {
+  params: Record<string, string | string[] | undefined>;
+}) {
+  return (
+    <>
+      {Object.entries(params).flatMap(([key, value]) => {
+        if (key === "stock" || value == null) return [];
+        if (Array.isArray(value)) {
+          return value.map((entry, index) => (
+            <input key={`${key}-${index}-${entry}`} type="hidden" name={key} value={entry} />
+          ));
+        }
+        return <input key={key} type="hidden" name={key} value={value} />;
+      })}
+    </>
+  );
+}
+
 export async function VehicleListingSection({
   title,
   breadcrumb,
@@ -258,18 +278,38 @@ export async function VehicleListingSection({
 
         <main className="order-2 min-w-0 lg:order-2 xl:order-2">
           <div className="mb-6 rounded-[1.75rem] border border-[#d7dfef] bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] md:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#64748b]">
-                  Matching Inventory
-                </p>
-                <h2 className="mt-2 text-2xl font-bold text-[#111827]">{title}</h2>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#64748b]">
+                    Matching Inventory
+                  </p>
+                  <h2 className="mt-2 text-2xl font-bold text-[#111827]">{title}</h2>
+                </div>
+                <Suspense
+                  fallback={<div className="h-10 w-48 animate-pulse rounded-lg bg-[#f5f5f5]" />}
+                >
+                  <SortDropdown />
+                </Suspense>
               </div>
-              <Suspense
-                fallback={<div className="h-10 w-48 animate-pulse rounded-lg bg-[#f5f5f5]" />}
-              >
-                <SortDropdown />
-              </Suspense>
+              <div>
+                <form action="/search" method="get" className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <SearchHiddenFields params={searchParams} />
+                  <input
+                    type="text"
+                    name="stock"
+                    defaultValue={merged.stockNumber ?? ""}
+                    placeholder="Search by stock ID"
+                    className="h-12 rounded-xl border border-[#d8dee9] bg-[#f8fbff] px-4 text-sm text-[#111827] outline-none focus:border-[#0c47a5]"
+                  />
+                  <button
+                    type="submit"
+                    className="inline-flex h-12 items-center justify-center rounded-xl bg-[#0c47a5] px-5 text-sm font-semibold text-white hover:bg-[#0a3d91]"
+                  >
+                    Find vehicle
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
 

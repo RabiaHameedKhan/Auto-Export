@@ -1,6 +1,7 @@
 import { TopBar } from "@/components/layout/TopBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { FloatingSocialBar } from "@/components/layout/FloatingSocialBar";
 import { AnnouncementBanner } from "@/components/home/AnnouncementBanner";
 import { getActiveAnnouncements } from "@/lib/queries/site";
 import { getVehicleSidebarData } from "@/lib/queries/vehicles";
@@ -66,6 +67,7 @@ export default async function PublicLayout({
       />
       <AnnouncementBanner items={announcements} />
       <main className="min-h-[60vh]">{children}</main>
+      <FloatingSocialBar />
       <Footer
         companyName={companyName}
         address={address}

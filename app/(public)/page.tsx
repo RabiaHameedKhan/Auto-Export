@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { HeroBanner } from "@/components/home/HeroBanner";
 import { VehicleGrid } from "@/components/vehicle/VehicleGrid";
+import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { InventorySidebar } from "@/components/vehicle/InventorySidebar";
 import { getVehicleSidebarData, searchVehicles } from "@/lib/queries/vehicles";
 import {
@@ -89,13 +90,13 @@ function HomeCategoryCard({
       href={href}
       className="group overflow-hidden rounded-[1.5rem] border border-[#d9e2f0] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
     >
-      <div className="relative aspect-[5/4] overflow-hidden bg-[#e8eef9] sm:aspect-[4/3]">
+      <div className="relative aspect-[1/1] overflow-hidden bg-[#e8eef9] sm:aspect-[4/3]">
         <Image
           src={imageUrl || "/placeholder-car.svg"}
           alt={title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1200px) 50vw, 25vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/82 via-[#0f172a]/18 to-transparent" />
         <div className={`absolute left-3 top-3 border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] sm:left-4 sm:top-4 sm:px-3 ${accent}`}>
@@ -103,8 +104,8 @@ function HomeCategoryCard({
         </div>
         <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">{countLabel}</p>
-          <h3 className="mt-2 text-lg font-bold text-white sm:text-xl">{title}</h3>
-          <p className="mt-1 line-clamp-2 text-sm text-white/82">{subtitle}</p>
+          <h3 className="mt-1.5 text-base font-bold leading-tight text-white sm:mt-2 sm:text-xl">{title}</h3>
+          <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/82 sm:text-sm">{subtitle}</p>
         </div>
       </div>
     </Link>
@@ -189,12 +190,24 @@ export default async function HomePage() {
     latestVehicles: [],
     clearanceVehicles: [],
   };
+  let highlightedVehicles: Awaited<ReturnType<typeof searchVehicles>>["rows"] = [];
   try {
     const na = await searchVehicles({ page: 1, perPage: 12, sort: "created_desc" });
     newArrivals = na.rows;
     makes = await listMakes();
     bodyTypes = await listBodyTypes();
     sidebarData = await getVehicleSidebarData({}, { page: 1 });
+    const featuredHighlightResult = await searchVehicles({
+      page: 1,
+      perPage: 5,
+      sort: "created_desc",
+    });
+    highlightedVehicles = [
+      ...sidebarData.featuredVehicles,
+      ...featuredHighlightResult.rows.filter(
+        (candidate) => !sidebarData.featuredVehicles.some((featured) => featured.id === candidate.id)
+      ),
+    ].slice(0, 5);
 
     makeShowcase = await Promise.all(
       sidebarData.makes.slice(0, 6).map(async (item) => {
@@ -263,9 +276,35 @@ export default async function HomePage() {
 
   return (
     <>
+      <HeroBanner imageUrl={heroImage} />
+
+      <section className="border-b border-[#d8dee9] bg-[#f8fbff] py-6 sm:py-8">
+        <div className="mx-auto max-w-[1600px] px-4">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#64748b]">
+                Featured Stock
+              </p>
+              <h2 className="mt-1 text-2xl font-bold text-[#111827]">Highlighted vehicles</h2>
+            </div>
+            <Link
+              href="/search"
+              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[#173574] hover:underline"
+            >
+              Browse all stock
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4 lg:grid-cols-5">
+            {highlightedVehicles.map((vehicle) => (
+              <VehicleCard key={`highlighted-${vehicle.id}`} vehicle={vehicle} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#eef1f6] py-8 sm:py-10">
         <div className="mx-auto max-w-[1600px] px-4">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[250px_minmax(0,1fr)_300px]">
+          <div className="grid gap-5 xl:grid-cols-[210px_minmax(0,1fr)_210px]">
             <InventorySidebar
               className="order-1 hidden space-y-5 xl:col-span-1 xl:block xl:sticky xl:top-24 xl:self-start"
               stats={[
@@ -350,12 +389,12 @@ export default async function HomePage() {
                 </div>
 
                 <div className="border-b border-[#d8dee9] bg-[#f8fafc] px-4 py-4 sm:px-6">
-                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:px-0 md:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                     {priceFilterLinks.map((p) => (
                       <Link
                         key={p.href}
                         href={p.href}
-                        className="min-w-[170px] shrink-0 rounded-xl border border-[#d8dee9] bg-white px-4 py-3 text-sm font-semibold text-[#173574] transition-colors hover:border-[#173574] hover:bg-[#eef4ff] sm:min-w-0"
+                        className="rounded-xl border border-[#d8dee9] bg-white px-3 py-3 text-sm font-semibold text-[#173574] transition-colors hover:border-[#173574] hover:bg-[#eef4ff] sm:px-4"
                       >
                         {p.label}
                       </Link>
@@ -384,17 +423,6 @@ export default async function HomePage() {
             </main>
 
             <aside className="order-3 space-y-5 lg:order-3 lg:sticky lg:top-24 lg:self-start xl:order-3">
-              <HomeSidebarSection title="Featured Stock">
-                <div>
-                  {(sidebarData.featuredVehicles.length
-                    ? sidebarData.featuredVehicles
-                    : sidebarData.latestVehicles
-                  ).map((vehicle) => (
-                    <HomeMiniVehicleCard key={`featured-${vehicle.id}`} vehicle={vehicle} badge="Featured" />
-                  ))}
-                </div>
-              </HomeSidebarSection>
-
               <HomeSidebarSection title="Fresh Arrivals">
                 <div>
                   {sidebarData.latestVehicles.map((vehicle) => (
@@ -421,8 +449,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      <HeroBanner imageUrl={heroImage} />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:py-14">
         <div className="overflow-hidden rounded-[1.75rem] border border-[#d9e0ef] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:rounded-[2rem]">
@@ -534,9 +560,9 @@ export default async function HomePage() {
       <section className="border-y border-[#e0e0e0] bg-[#f5f5f5] py-10 sm:py-14">
         <div className="mx-auto max-w-7xl px-4">
           <h2 className="mb-6 text-2xl font-bold text-[#0a0a0a] sm:mb-8">Shop by make</h2>
-          <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:gap-5 sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
             {makeShowcase.map((item) => (
-              <div key={item.id} className="min-w-[82vw] shrink-0 sm:min-w-0">
+              <div key={item.id} className="min-w-0">
                 <HomeCategoryCard
                   href={`/brand/${item.slug}`}
                   title={item.name}
@@ -558,9 +584,9 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:py-14">
         <h2 className="mb-6 text-2xl font-bold text-[#0a0a0a] sm:mb-8">Shop by body type</h2>
-        <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:gap-5 sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
           {bodyTypeShowcase.map((item) => (
-            <div key={item.id} className="min-w-[82vw] shrink-0 sm:min-w-0">
+            <div key={item.id} className="min-w-0">
               <HomeCategoryCard
                 href={`/car-type/${item.slug}`}
                 title={item.name}
@@ -582,9 +608,9 @@ export default async function HomePage() {
       <section className="bg-[#f5f5f5] py-10 sm:py-14">
         <div className="mx-auto max-w-7xl px-4">
           <h2 className="mb-6 text-2xl font-bold text-[#0a0a0a] sm:mb-8">Shop by price</h2>
-          <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:gap-5 sm:px-0 sm:pb-0 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
             {priceShowcase.map((item) => (
-              <div key={item.href} className="min-w-[82vw] shrink-0 sm:min-w-0">
+              <div key={item.href} className="min-w-0">
                 <HomeCategoryCard
                   href={item.href}
                   title={item.label}
@@ -606,7 +632,7 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:py-14">
         <h2 className="mb-6 text-2xl font-bold text-[#0a0a0a]">Quick categories</h2>
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        <div className="flex flex-wrap gap-2">
           {quickFilterLinks.map((q) => (
             <Link
               key={q.href}

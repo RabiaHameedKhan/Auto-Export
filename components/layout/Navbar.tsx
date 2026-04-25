@@ -136,14 +136,6 @@ export function Navbar({
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a
-            href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg bg-[#e6d53c] px-3 py-2 text-sm font-semibold text-black hover:bg-[#d4c235]"
-          >
-            WhatsApp
-          </a>
           <span className="text-sm opacity-90">{phone}</span>
         </div>
 

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, lte, sql, exists, ne } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, sql, exists, ne, ilike } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   vehicles,
@@ -12,6 +12,7 @@ import type { VehicleListItem } from "@/types";
 
 export type VehicleSearchParams = {
   excludeId?: number | null;
+  stockNumber?: string | null;
   makeId?: number | null;
   modelId?: number | null;
   bodyTypeId?: number | null;
@@ -73,6 +74,9 @@ function buildVehicleConditions(params: VehicleSearchParams) {
   const conditions = [eq(vehicles.isActive, true)];
 
   if (params.excludeId != null) conditions.push(ne(vehicles.id, params.excludeId));
+  if (params.stockNumber?.trim()) {
+    conditions.push(ilike(vehicles.stockNumber, `%${params.stockNumber.trim()}%`));
+  }
   if (params.makeId != null) conditions.push(eq(vehicles.makeId, params.makeId));
   if (params.modelId != null) conditions.push(eq(vehicles.modelId, params.modelId));
   if (params.bodyTypeId != null) conditions.push(eq(vehicles.bodyTypeId, params.bodyTypeId));

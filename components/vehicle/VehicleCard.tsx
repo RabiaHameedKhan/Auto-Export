@@ -16,45 +16,53 @@ export function VehicleCard({ vehicle }: Props) {
   ].filter(Boolean);
 
   return (
-    <article className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[#e0e0e0] bg-white shadow-sm transition-shadow hover:shadow-md">
-      <Link href={`/car/${vehicle.id}`} className="relative aspect-[16/10] overflow-hidden bg-[#f5f5f5] sm:aspect-[4/3]">
+    <article className="group flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[#dfe4ee] bg-white shadow-[0_8px_20px_rgba(15,23,42,0.06)] transition-shadow hover:shadow-[0_14px_26px_rgba(15,23,42,0.1)] sm:rounded-[1.35rem]">
+      <Link href={`/car/${vehicle.id}`} className="relative aspect-square overflow-hidden bg-[#f5f5f5]">
         <Image
           src={img}
           alt={vehicle.title}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-          sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, (max-width:1280px) 33vw, 25vw"
+          sizes="(max-width:640px) 33vw, (max-width:1024px) 33vw, (max-width:1280px) 20vw, 20vw"
         />
         {vehicle.isFeatured ? (
-          <span className="absolute left-2 top-2 rounded bg-[#e6d53c] px-2 py-0.5 text-xs font-semibold text-black">
+          <span className="absolute left-1.5 top-1.5 rounded-md bg-[#e6d53c] px-1.5 py-0.5 text-[10px] font-semibold text-black shadow-sm">
             Featured
           </span>
         ) : null}
         {vehicle.isClearance ? (
-          <span className="absolute right-2 top-2 rounded bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+          <span className="absolute right-1.5 top-1.5 rounded-md bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm">
             Clearance
           </span>
         ) : null}
       </Link>
-      <div className="flex min-h-0 flex-1 flex-col gap-2.5 p-3 sm:p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-2 sm:gap-2 sm:p-3">
         <Link href={`/car/${vehicle.id}`} className="min-w-0">
-          <h3 className="line-clamp-2 text-base font-semibold uppercase tracking-wide text-[#0a0a0a] sm:text-sm">
+          <h3 className="block min-h-[1.05rem] overflow-hidden text-ellipsis whitespace-nowrap text-[0.76rem] font-semibold uppercase tracking-[0.025em] leading-none text-[#0a0a0a] sm:line-clamp-2 sm:min-h-[2.25rem] sm:whitespace-normal sm:text-[0.92rem] sm:leading-[1.15]">
             {vehicle.title}
           </h3>
         </Link>
-        <p className="text-xl font-bold text-[#0c47a5] sm:text-base">{formatUsd(price)}</p>
+        <p className="text-[0.8rem] font-bold leading-none text-[#0c47a5] sm:text-[0.98rem]">{formatUsd(price)}</p>
         {vehicle.mileage != null ? (
-          <p className="text-sm font-medium text-[#64748b] sm:text-xs">
+          <p className="hidden text-[11px] font-medium leading-4 text-[#64748b] sm:block sm:text-xs">
             {vehicle.mileage.toLocaleString()} km
           </p>
         ) : (
-          <div className="h-[1rem]" />
+          <div className="hidden h-[0.9rem] sm:block" />
         )}
-        <div className="flex flex-wrap content-start gap-1.5 overflow-hidden">
-          {metaBadges.slice(0, 2).map((badge) => (
+        <div className="flex flex-wrap content-start gap-1 overflow-hidden sm:gap-1.5">
+          {metaBadges.slice(0, 1).map((badge) => (
             <span
               key={badge}
-              className="rounded-full bg-[#f5f5f5] px-2.5 py-1 text-xs text-[#6b7280]"
+              className="rounded-full bg-[#f5f5f5] px-1.5 py-1 text-[9px] leading-none text-[#6b7280] sm:px-2 sm:text-[11px]"
+            >
+              {badge}
+            </span>
+          ))}
+          {metaBadges.slice(1, 2).map((badge) => (
+            <span
+              key={badge}
+              className="hidden rounded-full bg-[#f5f5f5] px-2 py-1 text-[11px] leading-none text-[#6b7280] sm:inline-flex"
             >
               {badge}
             </span>
@@ -62,7 +70,7 @@ export function VehicleCard({ vehicle }: Props) {
         </div>
         <Link
           href={`/car/${vehicle.id}#quote`}
-          className="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-[#0c47a5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0a3d91]"
+          className="mt-auto inline-flex w-full items-center justify-center rounded-[0.9rem] bg-[#0c47a5] px-1.5 py-2 text-[0.76rem] font-semibold text-white hover:bg-[#0a3d91] sm:rounded-[0.95rem] sm:px-3 sm:py-2.5 sm:text-[0.9rem]"
         >
           Get Quote
         </Link>
